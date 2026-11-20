@@ -164,17 +164,20 @@ fun DayflowApp(viewModel: TodayViewModel) {
                 DayflowTab.HABITS -> HabitsContent(
                     habits = habits,
                     viewModel = viewModel,
+                    contentPadding = contentPadding,
                     onAddHabit = { showHabitDialog = true }
                 )
 
                 DayflowTab.PLAN -> ComingSoonContent(
                     title = "Your plan",
-                    description = "The unified time-block timeline and offline scheduling engine are the next planner milestone."
+                    description = "The unified time-block timeline and offline scheduling engine are the next planner milestone.",
+                    contentPadding = contentPadding
                 )
 
                 DayflowTab.INSIGHTS -> ComingSoonContent(
                     title = "Your progress",
-                    description = "Weekly summaries, streak insights, and the completion heatmap will appear here as the tracking experience grows."
+                    description = "Weekly summaries, streak insights, and the completion heatmap will appear here as the tracking experience grows.",
+                    contentPadding = contentPadding
                 )
             }
         }
@@ -256,7 +259,7 @@ private fun TodayContent(
         contentPadding = PaddingValues(
             start = 20.dp,
             end = 20.dp,
-            top = 12.dp,
+            top = contentPadding.calculateTopPadding() + 12.dp,
             bottom = contentPadding.calculateBottomPadding() + 92.dp
         ),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -324,13 +327,16 @@ private fun TodayContent(
 private fun HabitsContent(
     habits: List<Habit>,
     viewModel: TodayViewModel,
+    contentPadding: PaddingValues,
     onAddHabit: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            horizontal = 20.dp,
-            vertical = 14.dp
+            start = 20.dp,
+            end = 20.dp,
+            top = contentPadding.calculateTopPadding() + 14.dp,
+            bottom = contentPadding.calculateBottomPadding() + 24.dp
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -508,7 +514,10 @@ private fun HabitCard(
     habit: Habit,
     viewModel: TodayViewModel
 ) {
-    val progress by viewModel.observeProgress(habit).collectAsState(initial = emptyList())
+    val progressFlow = remember(habit.id, habit.startDateIso) {
+        viewModel.observeProgress(habit)
+    }
+    val progress by progressFlow.collectAsState(initial = emptyList())
     val today = LocalDate.now()
     val completedToday = HabitProgressCalculator.completedCountForDay(progress, today)
     val completedThisWeek = HabitProgressCalculator.completedCountForWeek(progress, today)
@@ -646,11 +655,13 @@ private fun EmptyCard(
 @Composable
 private fun ComingSoonContent(
     title: String,
-    description: String
+    description: String,
+    contentPadding: PaddingValues
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(contentPadding)
             .padding(horizontal = 20.dp, vertical = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
