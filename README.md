@@ -4,7 +4,7 @@
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
-> **Project status:** The initial Android Gradle/Compose scaffold, Room schema/DAO source, domain contracts, Room-backed repositories, and initial unit tests are committed. The first clean build and device test have not yet been run. Compose data integration, deterministic scheduling, alarms, widgets, local AI runtime, and device verification are still in progress. This is not yet a ready-to-install release APK.
+> **Current status:** The Android Gradle/Compose scaffold, Room data layer, Hilt bindings, task/habit use cases, and first interactive Compose task/habit experience are committed. The screen reads and writes local Room data. Planner timeline, analytics, deterministic scheduling, alarm playback, Glance widgets, on-device AI runtime, Gradle wrapper, clean-build verification, and physical-device testing remain in progress. This is not yet a release-ready APK.
 
 ## Product goals
 
@@ -15,6 +15,16 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 - **Alarm-style reminders:** Local audible/vibrating alerts with Complete, Snooze, and Dismiss actions.
 - **Interactive widgets:** Quick habit completion and upcoming schedule information.
 - **Local-first data:** Room is the source of truth for application data.
+
+## Implemented in the current milestone
+
+- Create tasks with a title and estimated duration.
+- Complete tasks from the Today screen.
+- Create daily or weekly habits.
+- Log a habit completion directly from the habit card.
+- Calculate daily/weekly progress and current streaks from Room history.
+- Switch between light and OLED-black dark themes for the current app session.
+- Browse Today and Habits destinations; Planner and Insights are clearly marked as planned.
 
 ## Non-negotiable principles
 
@@ -35,6 +45,7 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 | Kotlin Symbol Processing | KSP 2.3.12 |
 | UI | Jetpack Compose + Material 3 |
 | Compose BOM | 2026.06.01 |
+| Lifecycle ViewModel | 2.11.1 |
 | Local database | Room 2.8.5 |
 | Architecture | MVVM, Clean Architecture boundaries, unidirectional data flow |
 | Local model runtime | LiteRT-LM (subject to model/device testing) |
@@ -49,9 +60,10 @@ app/
   src/main/
     java/com/dayflow/
       core/database/
-        dao/
-        entity/
       core/designsystem/theme/
+      data/
+      di/
+      domain/
       feature/today/presentation/
     AndroidManifest.xml
   schemas/
@@ -76,7 +88,7 @@ The initial target test device is the **Infinix NOTE 50 Pro+ 5G running Android 
 
 ## Build status
 
-The Gradle app scaffold and data-layer sources are present. A hosted Gradle build and initial unit tests passed before the Hilt integration; the Hilt-integrated application and repositories also passed hosted CI. The Gradle wrapper scripts/JAR still need to be generated, and no device test has been run. Follow [docs/build-setup.md](docs/build-setup.md).
+The Android scaffold and core source files are present. Hosted CI and physical-device build/install verification are not yet confirmed for the current UI milestone. Generate the Gradle wrapper as described in [docs/build-setup.md](docs/build-setup.md), then run the debug build and unit tests.
 
 ## Privacy and permissions
 
