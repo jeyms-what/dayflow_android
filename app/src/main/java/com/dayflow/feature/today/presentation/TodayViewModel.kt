@@ -12,6 +12,9 @@ import com.dayflow.domain.model.TaskStatus
 import com.dayflow.domain.repository.HabitRepository
 import com.dayflow.domain.repository.TaskRepository
 import com.dayflow.domain.repository.ScheduleRepository
+import com.dayflow.domain.repository.ReminderRepository
+import com.dayflow.notifications.TaskAlarmScheduler
+import com.dayflow.notifications.AlarmPrecision
 import com.dayflow.domain.usecase.CompleteHabit
 import com.dayflow.domain.usecase.CompleteTask
 import com.dayflow.domain.usecase.SaveHabit
@@ -34,7 +37,9 @@ import kotlinx.coroutines.launch
 class TodayViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
     private val habitRepository: HabitRepository,
-    private val scheduleRepository: ScheduleRepository
+    private val scheduleRepository: ScheduleRepository,
+    private val reminderRepository: ReminderRepository,
+    private val taskAlarmScheduler: TaskAlarmScheduler
 ) : ViewModel() {
 
     val tasks: StateFlow<List<Task>> = taskRepository
@@ -77,17 +82,39 @@ class TodayViewModel @Inject constructor(
         endAt = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
-    fun scheduleTask(taskId: String, date: LocalDate, startTime: LocalTime) {
+    fun scheduleTask(
+        taskId: String,
+        date: LocalDate,
+        startTime: LocalTime,
+        reminderEnabled: Boolean = true
+    ) {
         viewModelScope.launch {
             runCatching {
                 val task = taskRepository.getTask(taskId)
                     ?: throw IllegalArgumentException("Task no longer exists.")
-                scheduleTaskUseCase(
+                val block = scheduleTaskUseCase(
                     task = task,
                     date = date,
                     startTime = startTime,
-                    timeZoneId = ZoneId.systemDefault().id
+                    timeZoneId = ZoneId.systemDefault().id,
+                    reminderEnabled = reminderEnabled
                 )
+
+                if (reminderEnabled) {
+                    val reminder = reminderRepository.getReminderForBlock(block.id)
+                        ?: error("The task was scheduled but its reminder was not saved.")
+                    when (taskAlarmScheduler.schedule(reminder)) {
+                        AlarmPrecision.EXACT -> {
+                            _message.value = "Task scheduled. Its alarm reminder is set."
+                        }
+                        AlarmPrecision.INEXACT -> {
+                            _message.value =
+                                "Task scheduled. Precise alarm access is off, so Android may delay the reminder."
+                        }
+                    }
+                } else {
+                    _message.value = "Task added to today's timeline without an alarm."
+                }
             }.onFailure {
                 _message.value = it.message ?: "Could not schedule the task."
             }
@@ -115,6 +142,10 @@ class TodayViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 completeScheduleBlockUseCase(blockId)
+                reminderRepository.getReminderForBlock(blockId)?.let { reminder ->
+                    taskAlarmScheduler.cancel(reminder)
+                    taskAlarmScheduler.cancelNotification(reminder.requestCode)
+                }
             }.onFailure {
                 _message.value = it.message ?: "Could not complete this activity."
             }
