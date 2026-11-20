@@ -44,8 +44,9 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 | JDK | 17 |
 | Kotlin Symbol Processing | KSP 2.3.12 |
 | UI | Jetpack Compose + Material 3 |
+| Activity Compose | 1.12.4 |
+| Lifecycle ViewModel | 2.10.0 |
 | Compose BOM | 2026.06.01 |
-| Lifecycle ViewModel | 2.11.1 |
 | Local database | Room 2.8.5 |
 | Architecture | MVVM, Clean Architecture boundaries, unidirectional data flow |
 | Local model runtime | LiteRT-LM (subject to model/device testing) |
