@@ -81,6 +81,7 @@ See:
 - [Architecture decisions](docs/architecture.md)
 - [Data model and Room schema](docs/data-model.md)
 - [Build setup](docs/build-setup.md)
+- [Download and install the debug APK](docs/debug-apk-artifact.md)
 - [Development roadmap](docs/roadmap.md)
 
 ## Primary test device
