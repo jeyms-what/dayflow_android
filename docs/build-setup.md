@@ -11,7 +11,7 @@ This repository uses the following initial toolchain:
 | JDK | 17 | AGP 9.5 documented JDK requirement |
 | Kotlin | 2.4.21 | Stable Kotlin release |
 | KSP | 2.3.12 | KSP release aligned with Kotlin 2.4.21 |
-| Compose BOM | 2026.06.00 | Compose 1.11.4 generation |
+| Compose BOM | 2026.06.01 | Compose 1.11.4 generation |
 | Room | 2.8.5 | Stable Room 2.x release |
 | compileSdk | 36 | Stable Android 16 platform used by CI |
 | targetSdk | 36 | Initial Android 16 target |
