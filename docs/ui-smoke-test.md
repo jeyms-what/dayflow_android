@@ -26,7 +26,7 @@ Run this checklist on a clean install after the debug build succeeds.
 ## Navigation and appearance
 
 - [ ] Switch between Today, Habits, Plan, and Insights.
-- [ ] Confirm Planner and Insights are clearly marked as planned features.
+- [ ] Confirm Plan shows the daily task timeline and Insights is clearly marked as planned.
 - [ ] Toggle Light and OLED Dark themes.
 - [ ] Confirm scrolling content is not obscured by the top or bottom app bars.
 - [ ] Confirm dialogs can be cancelled without creating records.
