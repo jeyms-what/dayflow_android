@@ -79,7 +79,8 @@ private enum class DayflowTab(
 
 @Composable
 fun DayflowApp(viewModel: TodayViewModel) {
-    var darkTheme by rememberSaveable { mutableStateOf(isSystemInDarkTheme()) }
+    val systemDarkTheme = isSystemInDarkTheme()
+    var darkTheme by rememberSaveable { mutableStateOf(systemDarkTheme) }
     var selectedTabName by rememberSaveable { mutableStateOf(DayflowTab.TODAY.name) }
     var showTaskDialog by rememberSaveable { mutableStateOf(false) }
     var showHabitDialog by rememberSaveable { mutableStateOf(false) }
@@ -500,7 +501,7 @@ private fun TaskCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "\${task.estimatedDurationMinutes} min  ·  \${priorityLabel(task.priority)} priority",
+                    text = "${task.estimatedDurationMinutes} min  ·  ${priorityLabel(task.priority)} priority",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -532,9 +533,9 @@ private fun HabitCard(
     val streak = HabitProgressCalculator.currentStreak(habit, progress, today)
     val periodLabel = if (habit.frequencyPeriod == FrequencyPeriod.DAY) "today" else "this week"
     val targetLabel = if (habit.frequencyPeriod == FrequencyPeriod.DAY) {
-        "\${habit.targetCount} time\${if (habit.targetCount == 1) "" else "s"} daily"
+        "${habit.targetCount} time${if (habit.targetCount == 1) "" else "s"} daily"
     } else {
-        "\${habit.targetCount} times per week"
+        "${habit.targetCount} times per week"
     }
 
     Card(
@@ -601,12 +602,12 @@ private fun HabitCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "$completed / \${habit.targetCount} $periodLabel",
+                    text = "$completed / ${habit.targetCount} $periodLabel",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "$streak \${if (habit.frequencyPeriod == FrequencyPeriod.DAY) "day" else "week"} streak",
+                    text = "$streak ${if (habit.frequencyPeriod == FrequencyPeriod.DAY) "day" else "week"} streak",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
