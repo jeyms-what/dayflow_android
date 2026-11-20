@@ -93,6 +93,8 @@ fun DayflowApp(viewModel: TodayViewModel) {
     var showHabitDialog by rememberSaveable { mutableStateOf(false) }
     var showScheduleDialog by rememberSaveable { mutableStateOf(false) }
     var selectedTaskForSchedule by rememberSaveable { mutableStateOf<String?>(null) }
+    var showScheduleHabitDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedHabitForSchedule by rememberSaveable { mutableStateOf<String?>(null) }
 
     val selectedTab = DayflowTab.valueOf(selectedTabName)
     val tasks by viewModel.tasks.collectAsState()
@@ -193,6 +195,7 @@ fun DayflowApp(viewModel: TodayViewModel) {
 
                 DayflowTab.PLAN -> PlanContent(
                     tasks = unscheduledTasks,
+                    habits = habits,
                     viewModel = viewModel,
                     contentPadding = contentPadding,
                     onAddSchedule = {
@@ -202,6 +205,10 @@ fun DayflowApp(viewModel: TodayViewModel) {
                     onScheduleTask = { taskId ->
                         selectedTaskForSchedule = taskId
                         showScheduleDialog = true
+                    },
+                    onScheduleHabit = { habitId ->
+                        selectedHabitForSchedule = habitId
+                        showScheduleHabitDialog = true
                     }
                 )
 
@@ -250,6 +257,26 @@ fun DayflowApp(viewModel: TodayViewModel) {
                 )
                 showScheduleDialog = false
                 selectedTaskForSchedule = null
+            }
+        )
+    }
+
+    if (showScheduleHabitDialog) {
+        ScheduleHabitDialog(
+            habits = habits,
+            initialHabitId = selectedHabitForSchedule,
+            onDismiss = {
+                showScheduleHabitDialog = false
+                selectedHabitForSchedule = null
+            },
+            onSave = { habitId, startTime ->
+                viewModel.scheduleHabit(
+                    habitId = habitId,
+                    date = LocalDate.now(),
+                    startTime = startTime
+                )
+                showScheduleHabitDialog = false
+                selectedHabitForSchedule = null
             }
         )
     }
@@ -707,10 +734,12 @@ private fun EmptyCard(
 @Composable
 private fun PlanContent(
     tasks: List<Task>,
+    habits: List<Habit>,
     viewModel: TodayViewModel,
     contentPadding: PaddingValues,
     onAddSchedule: () -> Unit,
-    onScheduleTask: (String) -> Unit
+    onScheduleTask: (String) -> Unit,
+    onScheduleHabit: (String) -> Unit
 ) {
     val today = LocalDate.now()
     val timelineFlow = remember(today) { viewModel.observeTimeline(today) }
@@ -755,7 +784,10 @@ private fun PlanContent(
             }
         } else {
             items(scheduleBlocks, key = { it.id }) { block ->
-                ScheduleBlockCard(block = block)
+                ScheduleBlockCard(
+                    block = block,
+                    onComplete = { viewModel.completeScheduleBlock(block.id) }
+                )
             }
         }
 
@@ -783,11 +815,38 @@ private fun PlanContent(
                 )
             }
         }
+
+        item {
+            SectionHeader(
+                title = "Habits to plan",
+                action = "Add habit block",
+                onAction = { onScheduleHabit(habits.firstOrNull()?.id.orEmpty()) }
+            )
+        }
+
+        if (habits.isEmpty()) {
+            item {
+                EmptyCard(
+                    title = "No active habits",
+                    description = "Create a habit first, then add a session to today's timeline."
+                )
+            }
+        } else {
+            items(habits, key = { "habit-" + it.id }) { habit ->
+                UnscheduledHabitCard(
+                    habit = habit,
+                    onSchedule = { onScheduleHabit(habit.id) }
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun ScheduleBlockCard(block: ScheduleBlock) {
+private fun ScheduleBlockCard(
+    block: ScheduleBlock,
+    onComplete: () -> Unit
+) {
     val zone = ZoneId.of(block.timeZoneId)
     val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
     val start = Instant.ofEpochMilli(block.startAtEpochMillis)
@@ -854,6 +913,12 @@ private fun ScheduleBlockCard(block: ScheduleBlock) {
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+                FilledTonalButton(
+                    onClick = onComplete,
+                    enabled = block.status.name == "PLANNED" || block.status.name == "IN_PROGRESS"
+                ) {
+                    Text(if (block.status.name == "COMPLETED") "Done" else "Complete")
                 }
             }
         }
@@ -1007,6 +1072,171 @@ private fun ScheduleTaskDialog(
                     }
                 },
                 enabled = selectedTask != null && parsedStartTime != null
+            ) {
+                Text("Add to timeline")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+
+@Composable
+private fun UnscheduledHabitCard(
+    habit: Habit,
+    onSchedule: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Text(
+                    text = habit.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                val frequency = if (habit.frequencyPeriod == FrequencyPeriod.DAY) {
+                    "Daily · " + habit.targetCount + " time(s)"
+                } else {
+                    "Weekly · " + habit.targetCount + " session(s)"
+                }
+                Text(
+                    text = habit.durationMinutes.toString() + " min · " + frequency,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            FilledTonalButton(onClick = onSchedule) {
+                Text("Schedule")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleHabitDialog(
+    habits: List<Habit>,
+    initialHabitId: String?,
+    onDismiss: () -> Unit,
+    onSave: (String, LocalTime) -> Unit
+) {
+    var selectedHabitId by rememberSaveable { mutableStateOf(initialHabitId.orEmpty()) }
+    var startTimeText by rememberSaveable {
+        mutableStateOf(
+            LocalTime.now()
+                .plusMinutes(15)
+                .withSecond(0)
+                .withNano(0)
+                .format(DateTimeFormatter.ofPattern("HH:mm"))
+        )
+    }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(habits, initialHabitId) {
+        if (habits.none { it.id == selectedHabitId }) {
+            selectedHabitId = initialHabitId
+                ?.takeIf { id -> habits.any { it.id == id } }
+                ?: habits.firstOrNull()?.id.orEmpty()
+        }
+    }
+
+    val selectedHabit = habits.firstOrNull { it.id == selectedHabitId }
+    val parsedStartTime = runCatching {
+        LocalTime.parse(startTimeText.trim())
+    }.getOrNull()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Schedule a habit") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (habits.isEmpty()) {
+                    Text(
+                        text = "There are no active habits to schedule. Create a habit from the Habits screen first.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = "Habit",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Box {
+                        OutlinedButton(
+                            onClick = { expanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = selectedHabit?.title ?: "Select a habit",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            habits.forEach { habit ->
+                                DropdownMenuItem(
+                                    text = { Text(habit.title) },
+                                    onClick = {
+                                        selectedHabitId = habit.id
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = startTimeText,
+                        onValueChange = { startTimeText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Start time") },
+                        placeholder = { Text("07:30") },
+                        supportingText = { Text("Use 24-hour time, for example 07:30.") },
+                        singleLine = true,
+                        isError = startTimeText.isNotBlank() && parsedStartTime == null
+                    )
+
+                    selectedHabit?.let { habit ->
+                        Text(
+                            text = "This session will last " + habit.durationMinutes + " minutes.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val habit = selectedHabit
+                    val time = parsedStartTime
+                    if (habit != null && time != null) {
+                        onSave(habit.id, time)
+                    }
+                },
+                enabled = selectedHabit != null && parsedStartTime != null
             ) {
                 Text("Add to timeline")
             }
