@@ -29,7 +29,7 @@ Exit: clean checkout imports into Android Studio and passes a Gradle debug build
 - [x] Draft Room entities and DAOs.
 - [ ] Compile and verify Room schema generation.
 - [x] Implement initial Room-backed repositories and entity/domain mappers.
-- [ ] Add dependency-injection bindings.
+- [x] Add Hilt database and repository bindings.
 - [ ] Export schemas and add migration tests.
 - [x] Add initial task validation/save/complete use cases.
 - [ ] Add habit CRUD/completion use cases.

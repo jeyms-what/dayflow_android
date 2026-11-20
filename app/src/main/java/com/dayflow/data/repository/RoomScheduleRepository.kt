@@ -1,5 +1,6 @@
 package com.dayflow.data.repository
 
+import javax.inject.Inject
 import androidx.room.withTransaction
 import com.dayflow.core.database.DayflowDatabase
 import com.dayflow.core.database.entity.ScheduleBlockEntity
@@ -10,7 +11,7 @@ import com.dayflow.domain.repository.ScheduleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class RoomScheduleRepository(
+class RoomScheduleRepository @Inject constructor(
     private val database: DayflowDatabase
 ) : ScheduleRepository {
 

@@ -34,13 +34,13 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 | JDK | 17 |
 | Kotlin Symbol Processing | KSP 2.3.12 |
 | UI | Jetpack Compose + Material 3 |
-| Compose BOM | 2026.09.00 |
+| Compose BOM | 2026.06.01 |
 | Local database | Room 2.8.5 |
 | Architecture | MVVM, Clean Architecture boundaries, unidirectional data flow |
 | Local model runtime | LiteRT-LM (subject to model/device testing) |
 | Scheduling fallback | Deterministic Kotlin engine |
 
-Other libraries such as WorkManager, Glance, DataStore, and Hilt will be added when their features are implemented, with versions verified at that time.
+Hilt 2.60.1 is used for dependency injection. WorkManager, Glance, and DataStore will be added when their features are implemented, with versions verified at that time.
 
 ## Repository layout
 
@@ -76,7 +76,7 @@ The initial target test device is the **Infinix NOTE 50 Pro+ 5G running Android 
 
 ## Build status
 
-The Gradle app scaffold is present, but the Gradle wrapper scripts/JAR still need to be generated and the first clean build must be run. No successful compile or device test is claimed yet. Follow [docs/build-setup.md](docs/build-setup.md).
+The Gradle app scaffold and data-layer sources are present. A hosted Gradle build and initial unit tests passed before the Hilt integration; the current Hilt commit is awaiting CI verification. The Gradle wrapper scripts/JAR still need to be generated, and no device test has been run. Follow [docs/build-setup.md](docs/build-setup.md).
 
 ## Privacy and permissions
 

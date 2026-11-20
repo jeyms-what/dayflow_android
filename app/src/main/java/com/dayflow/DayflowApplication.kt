@@ -1,13 +1,7 @@
 package com.dayflow
 
 import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 
-class DayflowApplication : Application() {
-    lateinit var container: DayflowContainer
-        private set
-
-    override fun onCreate() {
-        super.onCreate()
-        container = DayflowContainer(this)
-    }
-}
+@HiltAndroidApp
+class DayflowApplication : Application()

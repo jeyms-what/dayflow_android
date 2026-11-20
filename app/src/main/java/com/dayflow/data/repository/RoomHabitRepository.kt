@@ -1,5 +1,6 @@
 package com.dayflow.data.repository
 
+import javax.inject.Inject
 import com.dayflow.core.database.dao.HabitDao
 import com.dayflow.data.mapper.toDomain
 import com.dayflow.data.mapper.toEntity
@@ -10,7 +11,7 @@ import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class RoomHabitRepository(
+class RoomHabitRepository @Inject constructor(
     private val habitDao: HabitDao
 ) : HabitRepository {
 

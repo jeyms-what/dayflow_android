@@ -1,5 +1,6 @@
 package com.dayflow.data.repository
 
+import javax.inject.Inject
 import androidx.room.withTransaction
 import com.dayflow.core.database.DayflowDatabase
 import com.dayflow.data.mapper.toDomain
@@ -15,7 +16,7 @@ import java.time.ZoneId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class RoomReminderRepository(
+class RoomReminderRepository @Inject constructor(
     private val database: DayflowDatabase
 ) : ReminderRepository {
 

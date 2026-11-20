@@ -1,5 +1,6 @@
 package com.dayflow.data.repository
 
+import javax.inject.Inject
 import com.dayflow.core.database.dao.TaskDao
 import com.dayflow.data.mapper.toDomain
 import com.dayflow.data.mapper.toEntity
@@ -9,7 +10,7 @@ import com.dayflow.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class RoomTaskRepository(
+class RoomTaskRepository @Inject constructor(
     private val taskDao: TaskDao
 ) : TaskRepository {
 

@@ -1,5 +1,6 @@
 package com.dayflow.data.repository
 
+import javax.inject.Inject
 import com.dayflow.core.database.dao.AiProposalDao
 import com.dayflow.data.mapper.toDomain
 import com.dayflow.data.mapper.toEntity
@@ -7,7 +8,7 @@ import com.dayflow.domain.model.ProposalStatus
 import com.dayflow.domain.model.ScheduleProposal
 import com.dayflow.domain.repository.AiProposalRepository
 
-class RoomAiProposalRepository(
+class RoomAiProposalRepository @Inject constructor(
     private val proposalDao: AiProposalDao
 ) : AiProposalRepository {
 
