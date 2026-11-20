@@ -15,7 +15,11 @@ import java.util.UUID
 class ScheduleTask(
     private val repository: ScheduleRepository,
     private val now: () -> Long = System::currentTimeMillis,
-    private val newId: () -> String = { UUID.randomUUID().toString() }
+    private val newId: () -> String = { UUID.randomUUID().toString() },
+    private val newReminderId: () -> String = { UUID.randomUUID().toString() },
+    private val newRequestCode: () -> Int = {
+        (UUID.randomUUID().hashCode() and Int.MAX_VALUE).coerceAtLeast(1)
+    }
 ) {
     fun createBlock(
         task: Task,
@@ -64,10 +68,39 @@ class ScheduleTask(
         task: Task,
         date: LocalDate,
         startTime: LocalTime,
-        timeZoneId: String
+        timeZoneId: String,
+        reminderEnabled: Boolean = true,
+        snoozeMinutes: Int = 5
     ): ScheduleBlock {
         val block = createBlock(task, date, startTime, timeZoneId)
-        repository.saveBlock(block)
+
+        if (reminderEnabled) {
+            val timestamp = now()
+            require(snoozeMinutes > 0) { "Snooze duration must be positive." }
+            require(block.startAtEpochMillis > timestamp) {
+                "An alarm reminder requires a future task start time."
+            }
+
+            val reminder = TaskReminder(
+                id = newReminderId(),
+                scheduleBlockId = block.id,
+                triggerAtEpochMillis = block.startAtEpochMillis,
+                status = ReminderStatus.SCHEDULED,
+                snoozeUntilEpochMillis = null,
+                soundUri = null,
+                vibrationEnabled = true,
+                snoozeMinutes = snoozeMinutes,
+                maxRingDurationSeconds = 60,
+                requestCode = newRequestCode(),
+                lastTriggeredAtEpochMillis = null,
+                createdAtEpochMillis = timestamp,
+                updatedAtEpochMillis = timestamp
+            )
+            repository.saveBlockWithReminder(block, reminder)
+        } else {
+            repository.saveBlock(block)
+        }
+
         return block
     }
 }
