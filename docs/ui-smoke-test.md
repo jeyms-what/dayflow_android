@@ -40,3 +40,16 @@ Run this checklist on a clean install after the debug build succeeds.
 ## Record evidence
 
 Record device model, Android version, app version, build variant, steps, expected result, actual result, and any relevant logcat output. Do not mark the milestone complete based only on a successful compilation; the physical-device checks must also pass.
+
+
+## Daily timeline flow
+
+- [ ] Create two open tasks with different estimated durations.
+- [ ] Open the Plan tab while offline.
+- [ ] Schedule the first task at a valid 24-hour start time.
+- [ ] Confirm the block appears in chronological order with the calculated end time.
+- [ ] Confirm the scheduled task no longer appears under Unscheduled tasks.
+- [ ] Try to schedule the second task into an overlapping time range.
+- [ ] Confirm Room rejects the overlap and the app shows an error message.
+- [ ] Schedule the second task in a free time range and confirm both blocks appear.
+- [ ] Force-stop and relaunch the app; confirm the timeline remains present offline.
