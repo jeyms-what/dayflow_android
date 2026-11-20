@@ -49,6 +49,12 @@ class ScheduleTaskTest {
             excludeBlockId: String?
         ): Boolean = false
 
+        override suspend fun completeBlock(
+            blockId: String,
+            completedAtEpochMillis: Long
+        ): ScheduleBlock = saved?.takeIf { it.id == blockId }
+            ?: throw IllegalArgumentException("Schedule block not found.")
+
         override suspend fun applyProposal(proposalId: String) = Unit
     }
 
