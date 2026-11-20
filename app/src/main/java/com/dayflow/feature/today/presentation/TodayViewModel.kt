@@ -187,6 +187,10 @@ class TodayViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 completeTaskUseCase(taskId)
+                reminderRepository.getRemindersForTask(taskId).forEach { reminder ->
+                    taskAlarmScheduler.cancel(reminder)
+                    taskAlarmScheduler.cancelNotification(reminder.requestCode)
+                }
             }.onFailure {
                 _message.value = it.message ?: "Could not complete the task."
             }
