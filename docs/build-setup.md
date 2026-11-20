@@ -48,7 +48,7 @@ After that, use the wrapper for reproducible builds.
 ## Windows development setup
 
 1. Install Android Studio and select JDK 17 as the Gradle JDK.
-2. Install Android SDK Platform 37 and the Android 16 platform/build tools needed for device testing.
+2. Install Android SDK Platform 36 and the Android 16 platform/build tools needed for device testing.
 3. Open the repository root in Android Studio.
 4. Allow Gradle sync to finish.
 5. Generate/commit the Gradle wrapper as described above.
@@ -74,3 +74,8 @@ The primary development PC has 8 GB RAM. Gradle's JVM heap is initially limited 
 ## Build verification status
 
 The Gradle files have been added to GitHub, but no clean build has been executed in this environment. Do not treat the scaffold as verified until the commands above pass.
+
+
+## Why compileSdk 36 is pinned
+
+Compose 1.12.0 and newer require compileSdk 37. The initial CI runner did not have the Android 37 platform package available as a stable SDK package, so the project uses the Compose 1.11.4 generation with a 2026.06 stable BOM and compileSdk 36. This is appropriate for the Android 16 target. Upgrade the BOM and compileSdk together after the next Android SDK platform is generally available to the build environment.
