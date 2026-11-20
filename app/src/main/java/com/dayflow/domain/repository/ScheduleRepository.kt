@@ -7,6 +7,18 @@ interface ScheduleRepository {
     fun observeTimeline(startAt: Long, endAt: Long): Flow<List<ScheduleBlock>>
     suspend fun getBlock(id: String): ScheduleBlock?
     suspend fun saveBlock(block: ScheduleBlock)
+
+    /**
+     * Persists a task block and its reminder atomically.
+     * The default implementation preserves compatibility with simple test fakes.
+     */
+    suspend fun saveBlockWithReminder(
+        block: ScheduleBlock,
+        reminder: com.dayflow.domain.model.TaskReminder
+    ) {
+        saveBlock(block)
+    }
+
     suspend fun hasConflict(
         startAt: Long,
         endAt: Long,
