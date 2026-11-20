@@ -1,0 +1,41 @@
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+.idea/
+*.iml
+.cxx/
+.externalNativeBuild/
+captures/
+outputs/
+
+# Android Studio / Kotlin
+.navigation/
+.kotlin/
+*.hprof
+
+# Signing credentials and local secrets
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+.env
+.env.*
+
+# OS / logs
+.DS_Store
+Thumbs.db
+*.log
+
+# Test / coverage output
+**/test-results/
+**/reports/
+coverage/
+
+# Local AI model weights (never commit large model files)
+*.litertlm
+*.task
+*.tflite
+*.gguf
+models/
