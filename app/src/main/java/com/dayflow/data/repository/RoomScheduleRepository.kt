@@ -46,6 +46,43 @@ class RoomScheduleRepository @Inject constructor(
         }
     }
 
+    override suspend fun saveBlockWithReminder(
+        block: ScheduleBlock,
+        reminder: TaskReminder
+    ) {
+        validateBlock(block)
+        require(block.blockType == ScheduleBlockType.TASK) {
+            "Task reminders can only be attached to task blocks."
+        }
+        require(reminder.id.isNotBlank() && reminder.scheduleBlockId == block.id) {
+            "Reminder must reference the new schedule block."
+        }
+        require(reminder.triggerAtEpochMillis == block.startAtEpochMillis) {
+            "Reminder trigger must match the task block start time."
+        }
+        require(reminder.snoozeMinutes > 0 && reminder.maxRingDurationSeconds > 0) {
+            "Reminder snooze and ring duration must be positive."
+        }
+        require(reminder.requestCode > 0) {
+            "Reminder request code must be positive."
+        }
+
+        database.withTransaction {
+            require(scheduleDao.getById(block.id) == null) {
+                "Schedule block ID already exists."
+            }
+            require(
+                !scheduleDao.hasOverlap(
+                    startAt = block.startAtEpochMillis,
+                    endAt = block.endAtEpochMillis,
+                    excludeBlockId = null
+                )
+            ) { "The schedule block overlaps an existing block." }
+            scheduleDao.upsert(block.toEntity())
+            database.reminderDao().upsert(reminder.toEntity())
+        }
+    }
+
     override suspend fun hasConflict(
         startAt: Long,
         endAt: Long,
