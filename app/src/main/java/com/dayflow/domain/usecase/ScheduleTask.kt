@@ -6,6 +6,8 @@ import com.dayflow.domain.model.ScheduleBlockType
 import com.dayflow.domain.model.ScheduleSource
 import com.dayflow.domain.model.Task
 import com.dayflow.domain.model.TaskStatus
+import com.dayflow.domain.model.TaskReminder
+import com.dayflow.domain.model.ReminderStatus
 import com.dayflow.domain.repository.ScheduleRepository
 import java.time.LocalDate
 import java.time.LocalTime
