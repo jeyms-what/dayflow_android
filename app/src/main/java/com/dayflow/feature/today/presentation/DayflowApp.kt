@@ -138,7 +138,7 @@ fun DayflowApp(viewModel: TodayViewModel) {
         if (
             request.reminderEnabled &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            !context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
+            (context.getSystemService(AlarmManager::class.java)?.canScheduleExactAlarms() != true)
         ) {
             val settingsIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                 data = Uri.parse("package:${context.packageName}")
