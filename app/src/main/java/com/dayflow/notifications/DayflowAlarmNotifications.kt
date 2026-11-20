@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import com.dayflow.MainActivity
 import com.dayflow.domain.model.TaskReminder
 
@@ -70,6 +71,7 @@ object DayflowAlarmNotifications {
     ): PendingIntent {
         val intent = Intent(context, TaskAlarmActionReceiver::class.java).apply {
             this.action = action
+            data = Uri.parse("dayflow://reminder/${reminder.id}/$salt")
             putExtra(TaskAlarmActionReceiver.EXTRA_REMINDER_ID, reminder.id)
             putExtra(TaskAlarmActionReceiver.EXTRA_REQUEST_CODE, reminder.requestCode)
         }
