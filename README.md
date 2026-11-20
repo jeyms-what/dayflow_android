@@ -4,7 +4,7 @@
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
-> **Current status:** The Android Gradle/Compose scaffold, Room data layer, Hilt bindings, task/habit use cases, and first interactive Compose task/habit experience are committed. The screen reads and writes local Room data. Planner timeline, analytics, deterministic scheduling, alarm playback, Glance widgets, and on-device AI runtime remain in progress. The debug build and unit tests passed in GitHub Actions for PR #1; physical-device testing is still pending. Gradle wrapper scripts/JAR are not yet included. This is not a release-ready APK.
+> **Current status:** The Android Gradle/Compose scaffold, Room data layer, Hilt bindings, task/habit use cases, and first interactive Compose task/habit experience are committed. The screen reads and writes local Room data. The Plan tab now includes a Room-backed daily task timeline with manual time-block creation and transactional overlap rejection. Habit time-blocking, analytics, automatic/dynamic scheduling, alarm playback, Glance widgets, and on-device AI runtime remain in progress. The debug build and unit tests passed in GitHub Actions for PR #1; physical-device testing is still pending. Gradle wrapper scripts/JAR are not yet included. This is not a release-ready APK.
 
 ## Product goals
 
@@ -21,6 +21,7 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 - Create tasks with a title and estimated duration.
 - Complete tasks from the Today screen.
 - Create daily or weekly habits.
+- Add open tasks to today's timeline with a manual start time and duration derived from the task.
 - Log a habit completion directly from the habit card.
 - Calculate daily/weekly progress and current streaks from Room history.
 - Switch between light and OLED-black dark themes for the current app session.
@@ -90,7 +91,7 @@ The initial target test device is the **Infinix NOTE 50 Pro+ 5G running Android 
 
 ## Build status
 
-The current Today/Habits UI snapshot passed GitHub Actions run #30 for PR #1: `:app:assembleDebug` and `:app:testDebugUnitTest` completed successfully with JDK 17, Gradle 9.6.0, and Android SDK 36. The CI workflow now uploads `dayflow-debug-apk` for 14 days after successful builds. This is hosted build verification only; installation and airplane-mode behavior still need testing on the Infinix NOTE 50 Pro+ 5G. The Gradle wrapper scripts/JAR are still missing. See [docs/build-setup.md](docs/build-setup.md) for local setup and artifact retrieval.
+The current task timeline snapshot passed GitHub Actions run #41 for PR #3: `:app:assembleDebug` and `:app:testDebugUnitTest` completed successfully with JDK 17, Gradle 9.6.0, and Android SDK 36. The CI workflow now uploads `dayflow-debug-apk` for 14 days after successful builds. This is hosted build verification only; installation and airplane-mode behavior still need testing on the Infinix NOTE 50 Pro+ 5G. The Gradle wrapper scripts/JAR are still missing. See [docs/build-setup.md](docs/build-setup.md) for local setup and artifact retrieval.
 
 ## Privacy and permissions
 
