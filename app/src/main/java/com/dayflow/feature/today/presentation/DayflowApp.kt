@@ -96,6 +96,7 @@ fun DayflowApp(viewModel: TodayViewModel) {
 
     val selectedTab = DayflowTab.valueOf(selectedTabName)
     val tasks by viewModel.tasks.collectAsState()
+    val unscheduledTasks by viewModel.unscheduledTasks.collectAsState()
     val habits by viewModel.habits.collectAsState()
     val message by viewModel.message.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -191,7 +192,7 @@ fun DayflowApp(viewModel: TodayViewModel) {
                 )
 
                 DayflowTab.PLAN -> PlanContent(
-                    tasks = tasks,
+                    tasks = unscheduledTasks,
                     viewModel = viewModel,
                     contentPadding = contentPadding,
                     onAddSchedule = {
@@ -235,7 +236,7 @@ fun DayflowApp(viewModel: TodayViewModel) {
 
     if (showScheduleDialog) {
         ScheduleTaskDialog(
-            tasks = tasks,
+            tasks = unscheduledTasks,
             initialTaskId = selectedTaskForSchedule,
             onDismiss = {
                 showScheduleDialog = false
@@ -714,12 +715,6 @@ private fun PlanContent(
     val today = LocalDate.now()
     val timelineFlow = remember(today) { viewModel.observeTimeline(today) }
     val scheduleBlocks by timelineFlow.collectAsState(initial = emptyList())
-    val scheduledTaskIds = remember(scheduleBlocks) {
-        scheduleBlocks.mapNotNull { it.taskId }.toSet()
-    }
-    val unscheduledTasks = remember(tasks, scheduledTaskIds) {
-        tasks.filter { it.id !in scheduledTaskIds }
-    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
