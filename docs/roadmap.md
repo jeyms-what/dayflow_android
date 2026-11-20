@@ -19,7 +19,7 @@
 - [x] Pin initial Android build toolchain and version catalog.
 - [ ] Generate and commit Gradle wrapper scripts/JAR.
 - [ ] Run clean Gradle sync and debug build.
-- [ ] Add CI build/test workflow.
+- [ ] Add/verify CI build/test workflow.
 - [ ] Select a project license.
 
 Exit: clean checkout imports into Android Studio and passes a Gradle debug build.
@@ -34,22 +34,25 @@ Exit: clean checkout imports into Android Studio and passes a Gradle debug build
 - [x] Add initial task validation/save/complete use cases.
 - [x] Add habit save, completion, and archive use cases.
 - [x] Add daily/weekly progress calculation, pending-period-aware streak rules, and unit tests.
-- [ ] Add schedule and availability persistence.
-- [x] Add initial pure-domain unit tests; DAO/reminder persistence tests remain to be added.
+- [ ] Add schedule and availability persistence tests.
+- [ ] Add reminder persistence tests.
+- [x] Add initial pure-domain unit tests.
 
 Exit: automated tests prove offline CRUD and persistence across process restarts.
 
 ## Milestone 2 — Core Compose experience
 
 - [x] Add initial light and OLED dark palettes.
-- [x] Add initial Today placeholder screen.
-- [ ] Add main navigation.
-- [ ] Add Today dashboard and unified timeline.
-- [ ] Add quick task create/edit.
-- [ ] Add habit list and one-tap check-in.
-- [ ] Add habit details and heatmap.
+- [x] Add Today task/habit entry screen.
+- [x] Add bottom navigation destinations.
+- [x] Add quick task create and completion.
+- [x] Add daily/weekly habit create and one-tap check-in.
+- [x] Show habit period progress and current streak.
+- [ ] Add unified time-block timeline.
+- [ ] Add habit details and completion heatmap.
 - [ ] Add schedule editor.
-- [ ] Add settings and accessibility.
+- [ ] Persist theme preference in DataStore.
+- [ ] Add settings and accessibility review.
 
 Exit: users can manage tasks and habits offline through the app UI.
 
