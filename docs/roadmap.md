@@ -18,8 +18,8 @@
 - [x] Add initial Android Gradle/Compose scaffold.
 - [x] Pin initial Android build toolchain and version catalog.
 - [ ] Generate and commit Gradle wrapper scripts/JAR.
-- [ ] Run clean Gradle sync and debug build.
-- [ ] Add/verify CI build/test workflow.
+- [x] Run hosted `:app:assembleDebug` and `:app:testDebugUnitTest` on the current Compose snapshot.
+- [x] Add CI build/test workflow and verify debug build plus unit tests on PR #1.
 - [ ] Select a project license.
 
 Exit: clean checkout imports into Android Studio and passes a Gradle debug build.
