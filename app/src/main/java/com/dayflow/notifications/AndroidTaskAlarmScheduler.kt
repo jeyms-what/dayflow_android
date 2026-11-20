@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import com.dayflow.domain.model.TaskReminder
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -67,6 +68,7 @@ class AndroidTaskAlarmScheduler @Inject constructor(
     ): PendingIntent {
         val intent = Intent(context, TaskAlarmReceiver::class.java).apply {
             action = TaskAlarmReceiver.ACTION_FIRE
+            data = Uri.parse("dayflow://reminder/$reminderId/fire")
             putExtra(TaskAlarmReceiver.EXTRA_REMINDER_ID, reminderId)
         }
         return PendingIntent.getBroadcast(
