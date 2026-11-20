@@ -31,6 +31,9 @@ class RoomReminderRepository @Inject constructor(
     override suspend fun getReminderForBlock(blockId: String) =
         reminderDao.getByBlockId(blockId)?.toDomain()
 
+    override suspend fun getRemindersForTask(taskId: String) =
+        reminderDao.getByTaskId(taskId).map { it.toDomain() }
+
     override suspend fun markFiring(
         reminderId: String,
         triggeredAtEpochMillis: Long
