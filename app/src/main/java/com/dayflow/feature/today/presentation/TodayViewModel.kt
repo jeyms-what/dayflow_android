@@ -51,6 +51,14 @@ class TodayViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    val unscheduledTasks: StateFlow<List<Task>> = taskRepository
+        .observeUnscheduledTasks()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
     private val _message = MutableStateFlow<String?>(null)
     val message = _message.asStateFlow()
 
