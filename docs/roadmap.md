@@ -28,14 +28,14 @@ Exit: clean checkout imports into Android Studio and passes a Gradle debug build
 
 - [x] Draft Room entities and DAOs.
 - [ ] Compile and verify Room schema generation.
-- [ ] Implement repositories and mappers.
+- [x] Implement initial Room-backed repositories and entity/domain mappers.
 - [ ] Add dependency-injection bindings.
 - [ ] Export schemas and add migration tests.
-- [ ] Add task CRUD use cases.
+- [x] Add initial task validation/save/complete use cases.
 - [ ] Add habit CRUD/completion use cases.
-- [ ] Implement weekly frequency and streak calculations.
+- [x] Add weekly progress calculation and unit tests; streak policy tests remain to be added.
 - [ ] Add schedule and availability persistence.
-- [ ] Add reminder persistence tests.
+- [x] Add initial pure-domain unit tests; DAO/reminder persistence tests remain to be added.
 
 Exit: automated tests prove offline CRUD and persistence across process restarts.
 

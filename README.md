@@ -4,7 +4,7 @@
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
-> **Project status:** The initial Android Gradle/Compose scaffold and Room schema/DAO source are committed. The first clean build and device test have not yet been run. Repositories, use cases, timeline features, scheduler, alarms, widgets, and AI runtime are still in progress. This is not yet a ready-to-install release APK.
+> **Project status:** The initial Android Gradle/Compose scaffold, Room schema/DAO source, domain contracts, Room-backed repositories, and initial unit tests are committed. The first clean build and device test have not yet been run. Use-case coverage, timeline features, deterministic scheduler, alarms, widgets, local AI runtime, and clean CI verification are still in progress. This is not yet a ready-to-install release APK.
 
 ## Product goals
 
