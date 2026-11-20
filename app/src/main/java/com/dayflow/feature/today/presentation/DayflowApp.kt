@@ -26,6 +26,9 @@ import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -61,9 +64,13 @@ import androidx.compose.ui.unit.dp
 import com.dayflow.core.designsystem.theme.DayflowTheme
 import com.dayflow.domain.model.FrequencyPeriod
 import com.dayflow.domain.model.Habit
+import com.dayflow.domain.model.ScheduleBlock
 import com.dayflow.domain.model.Task
 import com.dayflow.domain.usecase.HabitProgressCalculator
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -84,6 +91,8 @@ fun DayflowApp(viewModel: TodayViewModel) {
     var selectedTabName by rememberSaveable { mutableStateOf(DayflowTab.TODAY.name) }
     var showTaskDialog by rememberSaveable { mutableStateOf(false) }
     var showHabitDialog by rememberSaveable { mutableStateOf(false) }
+    var showScheduleDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedTaskForSchedule by rememberSaveable { mutableStateOf<String?>(null) }
 
     val selectedTab = DayflowTab.valueOf(selectedTabName)
     val tasks by viewModel.tasks.collectAsState()
@@ -146,6 +155,18 @@ fun DayflowApp(viewModel: TodayViewModel) {
                         Text("Add habit")
                     }
 
+                    DayflowTab.PLAN -> Button(
+                        onClick = {
+                            selectedTaskForSchedule = null
+                            showScheduleDialog = true
+                        },
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Outlined.Add, contentDescription = null)
+                        Spacer(Modifier.size(8.dp))
+                        Text("Schedule task")
+                    }
+
                     else -> Unit
                 }
             },
@@ -169,10 +190,18 @@ fun DayflowApp(viewModel: TodayViewModel) {
                     onAddHabit = { showHabitDialog = true }
                 )
 
-                DayflowTab.PLAN -> ComingSoonContent(
-                    title = "Your plan",
-                    description = "The unified time-block timeline and offline scheduling engine are the next planner milestone.",
-                    contentPadding = contentPadding
+                DayflowTab.PLAN -> PlanContent(
+                    tasks = tasks,
+                    viewModel = viewModel,
+                    contentPadding = contentPadding,
+                    onAddSchedule = {
+                        selectedTaskForSchedule = null
+                        showScheduleDialog = true
+                    },
+                    onScheduleTask = { taskId ->
+                        selectedTaskForSchedule = taskId
+                        showScheduleDialog = true
+                    }
                 )
 
                 DayflowTab.INSIGHTS -> ComingSoonContent(
@@ -200,6 +229,26 @@ fun DayflowApp(viewModel: TodayViewModel) {
             onSave = { title, period, target ->
                 viewModel.addHabit(title, period, target)
                 showHabitDialog = false
+            }
+        )
+    }
+
+    if (showScheduleDialog) {
+        ScheduleTaskDialog(
+            tasks = tasks,
+            initialTaskId = selectedTaskForSchedule,
+            onDismiss = {
+                showScheduleDialog = false
+                selectedTaskForSchedule = null
+            },
+            onSave = { taskId, startTime ->
+                viewModel.scheduleTask(
+                    taskId = taskId,
+                    date = LocalDate.now(),
+                    startTime = startTime
+                )
+                showScheduleDialog = false
+                selectedTaskForSchedule = null
             }
         )
     }
@@ -651,6 +700,327 @@ private fun EmptyCard(
             }
         }
     }
+}
+
+
+@Composable
+private fun PlanContent(
+    tasks: List<Task>,
+    viewModel: TodayViewModel,
+    contentPadding: PaddingValues,
+    onAddSchedule: () -> Unit,
+    onScheduleTask: (String) -> Unit
+) {
+    val today = LocalDate.now()
+    val timelineFlow = remember(today) { viewModel.observeTimeline(today) }
+    val scheduleBlocks by timelineFlow.collectAsState(initial = emptyList())
+    val scheduledTaskIds = remember(scheduleBlocks) {
+        scheduleBlocks.mapNotNull { it.taskId }.toSet()
+    }
+    val unscheduledTasks = remember(tasks, scheduledTaskIds) {
+        tasks.filter { it.id !in scheduledTaskIds }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = contentPadding.calculateTopPadding() + 12.dp,
+            bottom = contentPadding.calculateBottomPadding() + 92.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Text(
+                text = "A clear view of what happens next.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        item {
+            SectionHeader(
+                title = "Today's timeline",
+                action = "Add block",
+                onAction = onAddSchedule
+            )
+        }
+
+        if (scheduleBlocks.isEmpty()) {
+            item {
+                EmptyCard(
+                    title = "Your timeline is open",
+                    description = if (tasks.isEmpty()) {
+                        "Create a task first, then place it into a time block."
+                    } else {
+                        "Choose one of your open tasks and give it a start time."
+                    }
+                )
+            }
+        } else {
+            items(scheduleBlocks, key = { it.id }) { block ->
+                ScheduleBlockCard(block = block)
+            }
+        }
+
+        item {
+            SectionHeader(
+                title = "Unscheduled tasks",
+                action = "",
+                onAction = {}
+            )
+        }
+
+        if (unscheduledTasks.isEmpty()) {
+            item {
+                EmptyCard(
+                    title = "Everything is on your timeline",
+                    description = "Add another task from Today when something new comes up."
+                )
+            }
+        } else {
+            items(unscheduledTasks, key = { "unscheduled-" + it.id }) { task ->
+                UnscheduledTaskCard(
+                    task = task,
+                    onSchedule = { onScheduleTask(task.id) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleBlockCard(block: ScheduleBlock) {
+    val zone = ZoneId.of(block.timeZoneId)
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
+    val start = Instant.ofEpochMilli(block.startAtEpochMillis)
+        .atZone(zone)
+        .format(timeFormatter)
+    val end = Instant.ofEpochMilli(block.endAtEpochMillis)
+        .atZone(zone)
+        .format(timeFormatter)
+    val status = block.status.name
+        .lowercase(Locale.getDefault())
+        .replaceFirstChar { it.titlecase(Locale.getDefault()) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Column(
+            modifier = Modifier.padding(top = 12.dp),
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = start,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = end,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Card(
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 4.dp, height = 42.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Text(
+                        text = block.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = block.blockType.name.lowercase(Locale.getDefault()) + " · " + status,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UnscheduledTaskCard(
+    task: Task,
+    onSchedule: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Text(
+                    text = task.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = task.estimatedDurationMinutes.toString() + " min · Priority " + task.priority,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            FilledTonalButton(onClick = onSchedule) {
+                Text("Schedule")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleTaskDialog(
+    tasks: List<Task>,
+    initialTaskId: String?,
+    onDismiss: () -> Unit,
+    onSave: (String, LocalTime) -> Unit
+) {
+    var selectedTaskId by rememberSaveable { mutableStateOf(initialTaskId.orEmpty()) }
+    var startTimeText by rememberSaveable {
+        mutableStateOf(
+            LocalTime.now()
+                .plusMinutes(15)
+                .withSecond(0)
+                .withNano(0)
+                .format(DateTimeFormatter.ofPattern("HH:mm"))
+        )
+    }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(tasks, initialTaskId) {
+        if (tasks.none { it.id == selectedTaskId }) {
+            selectedTaskId = initialTaskId
+                ?.takeIf { id -> tasks.any { it.id == id } }
+                ?: tasks.firstOrNull()?.id.orEmpty()
+        }
+    }
+
+    val selectedTask = tasks.firstOrNull { it.id == selectedTaskId }
+    val parsedStartTime = runCatching {
+        LocalTime.parse(startTimeText.trim())
+    }.getOrNull()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Schedule a task") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (tasks.isEmpty()) {
+                    Text(
+                        text = "There are no open tasks to schedule. Create a task from the Today screen first.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = "Task",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Box {
+                        OutlinedButton(
+                            onClick = { expanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = selectedTask?.title ?: "Select a task",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            tasks.forEach { task ->
+                                DropdownMenuItem(
+                                    text = { Text(task.title) },
+                                    onClick = {
+                                        selectedTaskId = task.id
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = startTimeText,
+                        onValueChange = { startTimeText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Start time") },
+                        placeholder = { Text("09:30") },
+                        supportingText = { Text("Use 24-hour time, for example 09:30.") },
+                        singleLine = true,
+                        isError = startTimeText.isNotBlank() && parsedStartTime == null
+                    )
+
+                    selectedTask?.let { task ->
+                        Text(
+                            text = "This block will last " + task.estimatedDurationMinutes + " minutes.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val task = selectedTask
+                    val time = parsedStartTime
+                    if (task != null && time != null) {
+                        onSave(task.id, time)
+                    }
+                },
+                enabled = selectedTask != null && parsedStartTime != null
+            ) {
+                Text("Add to timeline")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
