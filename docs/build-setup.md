@@ -11,7 +11,7 @@ This repository uses the following initial toolchain:
 | JDK | 17 | AGP 9.5 documented JDK requirement |
 | Kotlin | 2.4.21 | Stable Kotlin release |
 | KSP | 2.3.12 | KSP release aligned with Kotlin 2.4.21 |
-| Compose BOM | 2026.06.01 | Compose 1.11.4 generation |
+| Activity Compose | 1.12.4 | Compatible with the API 36 baseline |\n| Lifecycle | 2.10.0 | ViewModel and `viewModelScope` support without the API 37 requirement in 2.11.x |\n| Compose BOM | 2026.06.01 | Compose 1.11.4 generation |
 | Room | 2.8.5 | Stable Room 2.x release |
 | Dagger Hilt | 2.60.1 | KSP supported/stable from Dagger 2.60+ and KSP 2.3.9+ |
 | compileSdk | 36 | Stable Android 16 platform used by CI |
