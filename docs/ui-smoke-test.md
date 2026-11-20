@@ -69,3 +69,20 @@ Record device model, Android version, app version, build variant, steps, expecte
 - [ ] Confirm a completed block cannot be completed a second time.
 - [ ] If a reminder is attached to a block, confirm its persisted state becomes COMPLETED.
 - [ ] Force-stop and relaunch while offline; confirm completed block and habit progress remain saved.
+
+
+## Task alarm reminder flow
+
+- [ ] Grant notification permission when Dayflow asks after enabling a task alarm.
+- [ ] Grant "Alarms & reminders" special access when prompted for precise delivery.
+- [ ] Schedule a task at least two minutes in the future with "Ring at task start" enabled.
+- [ ] Confirm the task block and reminder persist while offline.
+- [ ] Close Dayflow and wait for the scheduled time.
+- [ ] Confirm an audible alarm-channel notification and vibration appear.
+- [ ] Use Complete and confirm the task, schedule block, and reminder are completed.
+- [ ] Schedule another task and use Snooze; confirm the new alarm fires after the configured delay.
+- [ ] Schedule another task and use Dismiss; confirm no later notification appears.
+- [ ] Complete a scheduled task from the in-app timeline before its alarm; confirm the alarm is cancelled.
+- [ ] Reboot the device and confirm pending reminders are restored.
+- [ ] Repeat with exact-alarm access denied; confirm Android may delay inexact delivery.
+- [ ] Repeat in Airplane mode to confirm reminder delivery is device-local.

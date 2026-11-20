@@ -1,5 +1,15 @@
 package com.dayflow.feature.today.presentation
 
+import android.Manifest
+import android.app.AlarmManager
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -74,6 +84,12 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private data class PendingTaskSchedule(
+    val taskId: String,
+    val startTime: LocalTime,
+    val reminderEnabled: Boolean
+)
+
 private enum class DayflowTab(
     val title: String,
     val icon: ImageVector
@@ -95,6 +111,83 @@ fun DayflowApp(viewModel: TodayViewModel) {
     var selectedTaskForSchedule by rememberSaveable { mutableStateOf<String?>(null) }
     var showScheduleHabitDialog by rememberSaveable { mutableStateOf(false) }
     var selectedHabitForSchedule by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingTaskSchedule by remember { mutableStateOf<PendingTaskSchedule?>(null) }
+    val context = LocalContext.current
+
+    fun finishPendingTaskSchedule() {
+        val request = pendingTaskSchedule ?: return
+        viewModel.scheduleTask(
+            taskId = request.taskId,
+            date = LocalDate.now(),
+            startTime = request.startTime,
+            reminderEnabled = request.reminderEnabled
+        )
+        pendingTaskSchedule = null
+    }
+
+    val exactAlarmSettingsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // Keep the reminder even when the user declines exact-alarm access.
+        // The scheduler will then use Android's inexact idle-allowed fallback.
+        finishPendingTaskSchedule()
+    }
+
+    fun continueAfterNotificationPermission() {
+        val request = pendingTaskSchedule ?: return
+        if (
+            request.reminderEnabled &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            (context.getSystemService(AlarmManager::class.java)?.canScheduleExactAlarms() != true)
+        ) {
+            val settingsIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                data = Uri.parse("package:${context.packageName}")
+            }
+            runCatching {
+                exactAlarmSettingsLauncher.launch(settingsIntent)
+            }.onFailure {
+                finishPendingTaskSchedule()
+            }
+        } else {
+            finishPendingTaskSchedule()
+        }
+    }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            continueAfterNotificationPermission()
+        } else {
+            pendingTaskSchedule?.let { request ->
+                viewModel.scheduleTask(
+                    taskId = request.taskId,
+                    date = LocalDate.now(),
+                    startTime = request.startTime,
+                    reminderEnabled = false
+                )
+            }
+            pendingTaskSchedule = null
+        }
+    }
+
+    fun beginTaskSchedule(
+        taskId: String,
+        startTime: LocalTime,
+        reminderEnabled: Boolean
+    ) {
+        pendingTaskSchedule = PendingTaskSchedule(taskId, startTime, reminderEnabled)
+        if (
+            reminderEnabled &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            continueAfterNotificationPermission()
+        }
+    }
 
     val selectedTab = DayflowTab.valueOf(selectedTabName)
     val tasks by viewModel.tasks.collectAsState()
@@ -249,12 +342,8 @@ fun DayflowApp(viewModel: TodayViewModel) {
                 showScheduleDialog = false
                 selectedTaskForSchedule = null
             },
-            onSave = { taskId, startTime ->
-                viewModel.scheduleTask(
-                    taskId = taskId,
-                    date = LocalDate.now(),
-                    startTime = startTime
-                )
+            onSave = { taskId, startTime, reminderEnabled ->
+                beginTaskSchedule(taskId, startTime, reminderEnabled)
                 showScheduleDialog = false
                 selectedTaskForSchedule = null
             }
@@ -971,9 +1060,10 @@ private fun ScheduleTaskDialog(
     tasks: List<Task>,
     initialTaskId: String?,
     onDismiss: () -> Unit,
-    onSave: (String, LocalTime) -> Unit
+    onSave: (String, LocalTime, Boolean) -> Unit
 ) {
     var selectedTaskId by rememberSaveable { mutableStateOf(initialTaskId.orEmpty()) }
+    var reminderEnabled by rememberSaveable { mutableStateOf(true) }
     var startTimeText by rememberSaveable {
         mutableStateOf(
             LocalTime.now()
@@ -1059,6 +1149,28 @@ private fun ScheduleTaskDialog(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Checkbox(
+                            checked = reminderEnabled,
+                            onCheckedChange = { reminderEnabled = it }
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "Ring at task start",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Uses an alarm sound and vibration. Android may request notification and precise-alarm access.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
         },
@@ -1068,7 +1180,7 @@ private fun ScheduleTaskDialog(
                     val task = selectedTask
                     val time = parsedStartTime
                     if (task != null && time != null) {
-                        onSave(task.id, time)
+                        onSave(task.id, time, reminderEnabled)
                     }
                 },
                 enabled = selectedTask != null && parsedStartTime != null

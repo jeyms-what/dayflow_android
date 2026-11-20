@@ -86,11 +86,11 @@ Exit: AI-assisted interpretation/suggestions operate offline on a tested device/
 
 ## Milestone 5 — Alarm reminders and widgets
 
-- [ ] Notification channels and runtime permission.
-- [ ] Exact-alarm special access explanation and fallback.
-- [ ] AlarmManager coordinator.
-- [ ] Complete/Snooze/Dismiss actions.
-- [ ] Reconciliation after boot/time/time-zone/app/permission changes.
+- [x] Notification channel and Android 13+ notification permission flow.
+- [x] Exact-alarm special access request with inexact fallback.
+- [x] AlarmManager coordinator for task-start reminders.
+- [x] Complete/Snooze/Dismiss notification actions.
+- [x] Reconciliation after boot/time/time-zone/app/permission changes (implementation added; physical-device verification pending).
 - [ ] Glance habits widget.
 - [ ] Glance upcoming schedule widget.
 - [ ] Widget-to-Room consistency tests.
