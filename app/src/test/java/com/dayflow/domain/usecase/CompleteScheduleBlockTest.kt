@@ -72,10 +72,13 @@ class CompleteScheduleBlockTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun blankBlockIdsAreRejected() = runBlocking {
-        CompleteScheduleBlock(
-            repository = FakeScheduleRepository(),
-            now = { 1L }
-        )(" ")
+    fun blankBlockIdsAreRejected() {
+        // Keep the JUnit test method's JVM return type as void.
+        runBlocking {
+            CompleteScheduleBlock(
+                repository = FakeScheduleRepository(),
+                now = { 1L }
+            )(" ")
+        }
     }
 }
