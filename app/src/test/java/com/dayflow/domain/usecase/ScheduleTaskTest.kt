@@ -6,6 +6,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -75,6 +76,25 @@ class ScheduleTaskTest {
         assertEquals(90L * 60L * 1000L, block.endAtEpochMillis - block.startAtEpochMillis)
         assertEquals(123L, block.createdAtEpochMillis)
         assertTrue(block.isMovable)
+    }
+
+    @Test
+    fun invokePersistsTheCreatedBlockThroughRepository() = runBlocking {
+        val repository = NoOpScheduleRepository()
+        val useCase = ScheduleTask(
+            repository = repository,
+            now = { 456L },
+            newId = { "persisted-block" }
+        )
+
+        val block = useCase(
+            task = task(),
+            date = LocalDate.parse("2026-11-20"),
+            startTime = LocalTime.parse("14:00"),
+            timeZoneId = "Asia/Manila"
+        )
+
+        assertEquals(block, repository.saved)
     }
 
     @Test(expected = IllegalArgumentException::class)
