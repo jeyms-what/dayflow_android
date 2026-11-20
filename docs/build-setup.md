@@ -13,6 +13,7 @@ This repository uses the following initial toolchain:
 | KSP | 2.3.12 | KSP release aligned with Kotlin 2.4.21 |
 | Compose BOM | 2026.06.01 | Compose 1.11.4 generation |
 | Room | 2.8.5 | Stable Room 2.x release |
+| Dagger Hilt | 2.60.1 | KSP supported/stable from Dagger 2.60+ and KSP 2.3.9+ |
 | compileSdk | 36 | Stable Android 16 platform used by CI |
 | targetSdk | 36 | Initial Android 16 target |
 | minSdk | 26 | Initial product compatibility baseline |
@@ -25,8 +26,10 @@ Official references:
 - [Compose BOM](https://developer.android.com/develop/ui/compose/bom)
 - [Compose UI release notes](https://developer.android.com/jetpack/androidx/releases/compose-ui)
 - [Room release notes](https://developer.android.com/jetpack/androidx/releases/room)
+- [Dagger KSP support](https://dagger.dev/dev-guide/ksp.html)
+- [Hilt Gradle setup](https://dagger.dev/hilt/gradle-setup)
 
-AGP 9 enables built-in Kotlin support. The project intentionally does **not** apply `org.jetbrains.kotlin.android`. The Compose compiler plugin remains applied separately using the Kotlin version. KSP handles Room's annotation processor.
+Dagger 2.60.1 is configured through KSP 2.3.12; Dagger documents stable KSP support from 2.60+ and KSP 2.3.9+. AGP 9 enables built-in Kotlin support. The project intentionally does **not** apply `org.jetbrains.kotlin.android`. The Compose compiler plugin remains applied separately using the Kotlin version. KSP handles Room's annotation processor.
 
 ### Why compileSdk 36 is pinned
 

@@ -4,7 +4,7 @@
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
-> **Project status:** The initial Android Gradle/Compose scaffold, Room schema/DAO source, domain contracts, Room-backed repositories, and initial unit tests are committed. The first clean build and device test have not yet been run. Use-case coverage, timeline features, deterministic scheduler, alarms, widgets, local AI runtime, and clean CI verification are still in progress. This is not yet a ready-to-install release APK.
+> **Project status:** The initial Android Gradle/Compose scaffold, Room schema/DAO source, domain contracts, Room-backed repositories, and initial unit tests are committed. The first clean build and device test have not yet been run. Compose data integration, deterministic scheduling, alarms, widgets, local AI runtime, and device verification are still in progress. This is not yet a ready-to-install release APK.
 
 ## Product goals
 
@@ -76,7 +76,7 @@ The initial target test device is the **Infinix NOTE 50 Pro+ 5G running Android 
 
 ## Build status
 
-The Gradle app scaffold and data-layer sources are present. A hosted Gradle build and initial unit tests passed before the Hilt integration; the current Hilt commit is awaiting CI verification. The Gradle wrapper scripts/JAR still need to be generated, and no device test has been run. Follow [docs/build-setup.md](docs/build-setup.md).
+The Gradle app scaffold and data-layer sources are present. A hosted Gradle build and initial unit tests passed before the Hilt integration; the Hilt-integrated application and repositories also passed hosted CI. The Gradle wrapper scripts/JAR still need to be generated, and no device test has been run. Follow [docs/build-setup.md](docs/build-setup.md).
 
 ## Privacy and permissions
 

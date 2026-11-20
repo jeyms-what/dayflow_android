@@ -32,8 +32,8 @@ Exit: clean checkout imports into Android Studio and passes a Gradle debug build
 - [x] Add Hilt database and repository bindings.
 - [ ] Export schemas and add migration tests.
 - [x] Add initial task validation/save/complete use cases.
-- [ ] Add habit CRUD/completion use cases.
-- [x] Add weekly progress calculation and unit tests; streak policy tests remain to be added.
+- [x] Add habit save, completion, and archive use cases.
+- [x] Add daily/weekly progress calculation, pending-period-aware streak rules, and unit tests.
 - [ ] Add schedule and availability persistence.
 - [x] Add initial pure-domain unit tests; DAO/reminder persistence tests remain to be added.
 

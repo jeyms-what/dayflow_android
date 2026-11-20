@@ -1,5 +1,7 @@
 package com.dayflow.domain.usecase
 
+import com.dayflow.domain.model.FrequencyPeriod
+import com.dayflow.domain.model.Habit
 import com.dayflow.domain.model.HabitProgress
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -19,9 +21,7 @@ object HabitProgressCalculator {
         progress: List<HabitProgress>,
         dateWithinWeek: LocalDate
     ): Int {
-        val monday = dateWithinWeek.with(
-            TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
-        )
+        val monday = weekStart(dateWithinWeek)
         val sunday = monday.plusDays(6)
 
         return progress.asSequence()
@@ -49,4 +49,59 @@ object HabitProgressCalculator {
         require(targetCount > 0) { "Weekly target must be greater than zero." }
         return completedCountForWeek(progress, dateWithinWeek) >= targetCount
     }
+
+    /**
+     * Counts consecutive completed periods ending at the current period.
+     *
+     * A daily habit's unfinished current day does not break its streak until
+     * the user has passed that day. A weekly habit's unfinished current week
+     * does not break the previous streak until the week has ended.
+     */
+    fun currentStreak(
+        habit: Habit,
+        progress: List<HabitProgress>,
+        today: LocalDate
+    ): Int {
+        require(habit.targetCount > 0) { "Habit target must be greater than zero." }
+        val habitStart = LocalDate.parse(habit.startDateIso)
+
+        return when (habit.frequencyPeriod) {
+            FrequencyPeriod.DAY -> {
+                var cursor = if (
+                    completedCountForDay(progress, today) >= habit.targetCount
+                ) today else today.minusDays(1)
+
+                var streak = 0
+                while (!cursor.isBefore(habitStart) &&
+                    completedCountForDay(progress, cursor) >= habit.targetCount
+                ) {
+                    streak++
+                    cursor = cursor.minusDays(1)
+                }
+                streak
+            }
+
+            FrequencyPeriod.WEEK -> {
+                val currentWeekStart = weekStart(today)
+                val cursorStart = if (
+                    completedCountForWeek(progress, today) >= habit.targetCount
+                ) currentWeekStart else currentWeekStart.minusWeeks(1)
+
+                var cursor = cursorStart
+                var streak = 0
+                val firstHabitWeek = weekStart(habitStart)
+
+                while (!cursor.isBefore(firstHabitWeek) &&
+                    completedCountForWeek(progress, cursor) >= habit.targetCount
+                ) {
+                    streak++
+                    cursor = cursor.minusWeeks(1)
+                }
+                streak
+            }
+        }
+    }
+
+    private fun weekStart(date: LocalDate): LocalDate =
+        date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 }
