@@ -25,6 +25,20 @@ class RoomReminderRepository @Inject constructor(
     override fun observePendingReminders() =
         reminderDao.observePendingReminders().map { rows -> rows.map { it.toDomain() } }
 
+    override suspend fun getReminder(reminderId: String) =
+        reminderDao.getById(reminderId)?.toDomain()
+
+    override suspend fun getReminderForBlock(blockId: String) =
+        reminderDao.getByBlockId(blockId)?.toDomain()
+
+    override suspend fun markFiring(
+        reminderId: String,
+        triggeredAtEpochMillis: Long
+    ): Boolean {
+        require(triggeredAtEpochMillis > 0L)
+        return reminderDao.markFiring(reminderId, triggeredAtEpochMillis) == 1
+    }
+
     override suspend fun saveReminder(reminder: com.dayflow.domain.model.TaskReminder) {
         require(reminder.id.isNotBlank() && reminder.scheduleBlockId.isNotBlank())
         require(reminder.triggerAtEpochMillis > 0L)
@@ -72,6 +86,11 @@ class RoomReminderRepository @Inject constructor(
     override suspend fun dismissReminder(reminderId: String) {
         val current = reminderDao.getById(reminderId)
             ?: throw IllegalArgumentException("Reminder was not found.")
+        check(current.status in listOf(
+            ReminderStatus.FIRING.name,
+            ReminderStatus.SCHEDULED.name,
+            ReminderStatus.SNOOZED.name
+        )) { "This reminder can no longer be dismissed." }
         val updated = reminderDao.updateReminderState(
             id = reminderId,
             status = ReminderStatus.DISMISSED.name,
@@ -86,8 +105,18 @@ class RoomReminderRepository @Inject constructor(
         database.withTransaction {
             val reminder = reminderDao.getById(reminderId)
                 ?: throw IllegalArgumentException("Reminder was not found.")
+            check(reminder.status in listOf(
+                ReminderStatus.FIRING.name,
+                ReminderStatus.SCHEDULED.name,
+                ReminderStatus.SNOOZED.name
+            )) { "This reminder has already been handled." }
+
             val block = database.scheduleDao().getById(reminder.scheduleBlockId)
                 ?: throw IllegalArgumentException("Scheduled block was not found.")
+            check(
+                block.status == ScheduleBlockStatus.PLANNED.name ||
+                    block.status == ScheduleBlockStatus.IN_PROGRESS.name
+            ) { "This scheduled activity has already been completed." }
 
             val now = System.currentTimeMillis()
             val reminderUpdated = reminderDao.updateReminderState(
@@ -99,11 +128,12 @@ class RoomReminderRepository @Inject constructor(
             )
             check(reminderUpdated == 1) { "Reminder could not be completed." }
 
-            database.scheduleDao().updateStatus(
+            val blockUpdated = database.scheduleDao().updateStatus(
                 blockId = block.id,
                 status = ScheduleBlockStatus.COMPLETED.name,
                 updatedAt = now
             )
+            check(blockUpdated == 1) { "Scheduled block could not be completed." }
 
             when (block.blockType) {
                 ScheduleBlockType.TASK.name -> {
