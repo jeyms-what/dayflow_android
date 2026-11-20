@@ -50,7 +50,8 @@ Exit: automated tests prove offline CRUD and persistence across process restarts
 - [x] Show habit period progress and current streak.
 - [x] Add initial unified daily task timeline with manual task time-block creation and overlap rejection.
 - [ ] Add habit details and completion heatmap.
-- [ ] Add habit time-blocking, scheduled-block completion actions, and schedule editing/rescheduling.
+- [x] Add habit time-blocking and scheduled-block completion actions with atomic task/habit progress updates.
+- [ ] Add time-block editing, drag-and-drop, and rescheduling.
 - [ ] Persist theme preference in DataStore.
 - [ ] Add settings and accessibility review.
 

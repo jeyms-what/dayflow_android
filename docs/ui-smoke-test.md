@@ -53,3 +53,19 @@ Record device model, Android version, app version, build variant, steps, expecte
 - [ ] Confirm Room rejects the overlap and the app shows an error message.
 - [ ] Schedule the second task in a free time range and confirm both blocks appear.
 - [ ] Force-stop and relaunch the app; confirm the timeline remains present offline.
+
+
+## Unified task and habit completion flow
+
+- [ ] Create a daily habit with a 15-minute duration.
+- [ ] Create a weekly habit with a target of three sessions.
+- [ ] Open Plan while offline and schedule both habits at non-overlapping times.
+- [ ] Confirm both habit blocks appear in chronological order.
+- [ ] Schedule a task at a time that overlaps a habit block.
+- [ ] Confirm Room rejects the conflicting block and the existing schedule remains unchanged.
+- [ ] Complete a scheduled task block and confirm the task is marked completed in Today.
+- [ ] Complete a scheduled daily habit block and confirm its daily progress increments once.
+- [ ] Complete a scheduled weekly habit block and confirm its weekly progress increments once.
+- [ ] Confirm a completed block cannot be completed a second time.
+- [ ] If a reminder is attached to a block, confirm its persisted state becomes COMPLETED.
+- [ ] Force-stop and relaunch while offline; confirm completed block and habit progress remain saved.

@@ -55,6 +55,103 @@ class RoomScheduleRepository @Inject constructor(
         return scheduleDao.hasOverlap(startAt, endAt, excludeBlockId)
     }
 
+    override suspend fun completeBlock(
+        blockId: String,
+        completedAtEpochMillis: Long
+    ): ScheduleBlock = database.withTransaction {
+        require(blockId.isNotBlank()) { "Schedule block ID cannot be blank." }
+        require(completedAtEpochMillis > 0L) { "Completion timestamp must be positive." }
+
+        val block = scheduleDao.getById(blockId)
+            ?: throw IllegalArgumentException("Schedule block was not found.")
+
+        check(
+            block.status == ScheduleBlockStatus.PLANNED.name ||
+                block.status == ScheduleBlockStatus.IN_PROGRESS.name
+        ) { "Only planned or in-progress blocks can be completed." }
+
+        when (block.blockType) {
+            ScheduleBlockType.TASK.name -> {
+                require(!block.taskId.isNullOrBlank() && block.habitId == null) {
+                    "Task blocks must reference exactly one task."
+                }
+                val task = database.taskDao().getById(block.taskId)
+                    ?: throw IllegalArgumentException("Linked task was not found.")
+                require(task.deletedAtEpochMillis == null) {
+                    "The linked task has been deleted."
+                }
+                check(task.status == TaskStatus.OPEN.name) {
+                    "The linked task is no longer open."
+                }
+                val updatedTask = database.taskDao().updateStatus(
+                    taskId = task.id,
+                    status = TaskStatus.COMPLETED.name,
+                    completedAt = completedAtEpochMillis,
+                    updatedAt = completedAtEpochMillis
+                )
+                check(updatedTask == 1) { "The task could not be completed." }
+            }
+
+            ScheduleBlockType.HABIT.name -> {
+                require(!block.habitId.isNullOrBlank() && block.taskId == null) {
+                    "Habit blocks must reference exactly one habit."
+                }
+                val habit = database.habitDao().getById(block.habitId)
+                    ?: throw IllegalArgumentException("Linked habit was not found.")
+                check(!habit.isArchived) { "The linked habit is archived." }
+
+                // A scheduled habit session belongs to the date on which it was planned.
+                val scheduledDate = java.time.Instant
+                    .ofEpochMilli(block.startAtEpochMillis)
+                    .atZone(java.time.ZoneId.of(block.timeZoneId))
+                    .toLocalDate()
+
+                require(!scheduledDate.isBefore(java.time.LocalDate.parse(habit.startDateIso))) {
+                    "The habit was not active on the scheduled date."
+                }
+                val endDate = habit.endDateIso?.let(java.time.LocalDate::parse)
+                require(endDate == null || !scheduledDate.isAfter(endDate)) {
+                    "The habit was not active on the scheduled date."
+                }
+
+                database.habitDao().incrementDailyProgress(
+                    habitId = habit.id,
+                    localDateIso = scheduledDate.toString(),
+                    timeZoneId = block.timeZoneId,
+                    targetCount = habit.targetCount,
+                    frequencyPeriod = habit.frequencyPeriod,
+                    updatedAt = completedAtEpochMillis
+                )
+            }
+
+            ScheduleBlockType.BREAK.name,
+            ScheduleBlockType.EXTERNAL.name -> Unit
+
+            else -> throw IllegalStateException("Unsupported schedule block type.")
+        }
+
+        val updatedBlockCount = scheduleDao.updateStatus(
+            blockId = blockId,
+            status = ScheduleBlockStatus.COMPLETED.name,
+            updatedAt = completedAtEpochMillis
+        )
+        check(updatedBlockCount == 1) { "Schedule block could not be completed." }
+
+        // Prevent a linked alarm from remaining pending after the activity is complete.
+        database.reminderDao().getByBlockId(blockId)?.let { reminder ->
+            database.reminderDao().updateReminderState(
+                id = reminder.id,
+                status = ReminderStatus.COMPLETED.name,
+                triggerAt = completedAtEpochMillis,
+                snoozeUntil = null,
+                updatedAt = completedAtEpochMillis
+            )
+        }
+
+        (scheduleDao.getById(blockId)
+            ?: error("Completed schedule block could not be reloaded.")).toDomain()
+    }
+
     /**
      * Adds a draft proposal's blocks to currently free time slots.
      *

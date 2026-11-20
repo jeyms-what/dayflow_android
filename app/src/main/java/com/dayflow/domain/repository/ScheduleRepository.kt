@@ -12,5 +12,15 @@ interface ScheduleRepository {
         endAt: Long,
         excludeBlockId: String? = null
     ): Boolean
+
+    /**
+     * Completes a scheduled block and its linked task/habit record atomically.
+     * Returns the updated block, or throws if it is missing/already completed.
+     */
+    suspend fun completeBlock(
+        blockId: String,
+        completedAtEpochMillis: Long
+    ): ScheduleBlock
+
     suspend fun applyProposal(proposalId: String)
 }
