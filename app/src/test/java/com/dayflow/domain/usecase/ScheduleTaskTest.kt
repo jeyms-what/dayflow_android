@@ -33,6 +33,7 @@ class ScheduleTaskTest {
 
     private class NoOpScheduleRepository : ScheduleRepository {
         var saved: ScheduleBlock? = null
+        var savedReminder: TaskReminder? = null
 
         override fun observeTimeline(startAt: Long, endAt: Long): Flow<List<ScheduleBlock>> =
             emptyFlow()
@@ -41,6 +42,14 @@ class ScheduleTaskTest {
 
         override suspend fun saveBlock(block: ScheduleBlock) {
             saved = block
+        }
+
+        override suspend fun saveBlockWithReminder(
+            block: ScheduleBlock,
+            reminder: TaskReminder
+        ) {
+            saved = block
+            savedReminder = reminder
         }
 
         override suspend fun hasConflict(
@@ -90,7 +99,9 @@ class ScheduleTaskTest {
         val useCase = ScheduleTask(
             repository = repository,
             now = { 456L },
-            newId = { "persisted-block" }
+            newId = { "persisted-block" },
+            newReminderId = { "reminder-1" },
+            newRequestCode = { 321 }
         )
 
         val block = useCase(
@@ -101,6 +112,32 @@ class ScheduleTaskTest {
         )
 
         assertEquals(block, repository.saved)
+        assertEquals("reminder-1", repository.savedReminder?.id)
+        assertEquals(block.id, repository.savedReminder?.scheduleBlockId)
+        assertEquals(block.startAtEpochMillis, repository.savedReminder?.triggerAtEpochMillis)
+        assertEquals(321, repository.savedReminder?.requestCode)
+        assertEquals(ReminderStatus.SCHEDULED, repository.savedReminder?.status)
+    }
+
+    @Test
+    fun invokeCanCreateTaskBlockWithoutAlarmReminder() = runBlocking {
+        val repository = NoOpScheduleRepository()
+        val useCase = ScheduleTask(
+            repository = repository,
+            now = { 456L },
+            newId = { "block-without-reminder" }
+        )
+
+        val block = useCase(
+            task = task(),
+            date = LocalDate.parse("2026-11-20"),
+            startTime = LocalTime.parse("14:00"),
+            timeZoneId = "Asia/Manila",
+            reminderEnabled = false
+        )
+
+        assertEquals(block, repository.saved)
+        assertNull(repository.savedReminder)
     }
 
     @Test(expected = IllegalArgumentException::class)
