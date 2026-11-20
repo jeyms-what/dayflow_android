@@ -17,6 +17,8 @@ import com.dayflow.domain.usecase.CompleteTask
 import com.dayflow.domain.usecase.SaveHabit
 import com.dayflow.domain.usecase.SaveTask
 import com.dayflow.domain.usecase.ScheduleTask
+import com.dayflow.domain.usecase.ScheduleHabit
+import com.dayflow.domain.usecase.CompleteScheduleBlock
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -67,6 +69,8 @@ class TodayViewModel @Inject constructor(
     private val saveHabit = SaveHabit(habitRepository)
     private val completeHabitUseCase = CompleteHabit(habitRepository)
     private val scheduleTaskUseCase = ScheduleTask(scheduleRepository)
+    private val scheduleHabitUseCase = ScheduleHabit(scheduleRepository)
+    private val completeScheduleBlockUseCase = CompleteScheduleBlock(scheduleRepository)
 
     fun observeTimeline(date: LocalDate) = scheduleRepository.observeTimeline(
         startAt = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
@@ -86,6 +90,33 @@ class TodayViewModel @Inject constructor(
                 )
             }.onFailure {
                 _message.value = it.message ?: "Could not schedule the task."
+            }
+        }
+    }
+
+    fun scheduleHabit(habitId: String, date: LocalDate, startTime: LocalTime) {
+        viewModelScope.launch {
+            runCatching {
+                val habit = habitRepository.getHabit(habitId)
+                    ?: throw IllegalArgumentException("Habit no longer exists.")
+                scheduleHabitUseCase(
+                    habit = habit,
+                    date = date,
+                    startTime = startTime,
+                    timeZoneId = ZoneId.systemDefault().id
+                )
+            }.onFailure {
+                _message.value = it.message ?: "Could not schedule the habit."
+            }
+        }
+    }
+
+    fun completeScheduleBlock(blockId: String) {
+        viewModelScope.launch {
+            runCatching {
+                completeScheduleBlockUseCase(blockId)
+            }.onFailure {
+                _message.value = it.message ?: "Could not complete this activity."
             }
         }
     }
