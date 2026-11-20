@@ -4,7 +4,7 @@
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
-> **Current status:** The Android Gradle/Compose scaffold, Room data layer, Hilt bindings, task/habit use cases, and first interactive Compose task/habit experience are committed. The screen reads and writes local Room data. Planner timeline, analytics, deterministic scheduling, alarm playback, Glance widgets, on-device AI runtime, Gradle wrapper, clean-build verification, and physical-device testing remain in progress. This is not yet a release-ready APK.
+> **Current status:** The Android Gradle/Compose scaffold, Room data layer, Hilt bindings, task/habit use cases, and first interactive Compose task/habit experience are committed. The screen reads and writes local Room data. Planner timeline, analytics, deterministic scheduling, alarm playback, Glance widgets, and on-device AI runtime remain in progress. The debug build and unit tests passed in GitHub Actions for PR #1; physical-device testing is still pending. Gradle wrapper scripts/JAR are not yet included. This is not a release-ready APK.
 
 ## Product goals
 
@@ -88,7 +88,7 @@ The initial target test device is the **Infinix NOTE 50 Pro+ 5G running Android 
 
 ## Build status
 
-The Android scaffold and core source files are present. Hosted CI and physical-device build/install verification are not yet confirmed for the current UI milestone. Generate the Gradle wrapper as described in [docs/build-setup.md](docs/build-setup.md), then run the debug build and unit tests.
+The current Today/Habits UI snapshot passed GitHub Actions run #30 for PR #1: `:app:assembleDebug` and `:app:testDebugUnitTest` completed successfully with JDK 17, Gradle 9.6.0, and Android SDK 36. The CI workflow now uploads `dayflow-debug-apk` for 14 days after successful builds. This is hosted build verification only; installation and airplane-mode behavior still need testing on the Infinix NOTE 50 Pro+ 5G. The Gradle wrapper scripts/JAR are still missing. See [docs/build-setup.md](docs/build-setup.md) for local setup and artifact retrieval.
 
 ## Privacy and permissions
 
