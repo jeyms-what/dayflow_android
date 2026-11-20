@@ -768,7 +768,7 @@ private fun PlanContent(
             )
         }
 
-        if (unscheduledTasks.isEmpty()) {
+        if (tasks.isEmpty()) {
             item {
                 EmptyCard(
                     title = "Everything is on your timeline",
@@ -776,7 +776,7 @@ private fun PlanContent(
                 )
             }
         } else {
-            items(unscheduledTasks, key = { "unscheduled-" + it.id }) { task ->
+            items(tasks, key = { "unscheduled-" + it.id }) { task ->
                 UnscheduledTaskCard(
                     task = task,
                     onSchedule = { onScheduleTask(task.id) }
