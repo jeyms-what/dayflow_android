@@ -9,7 +9,6 @@ import com.dayflow.domain.model.FrequencyPeriod
 import com.dayflow.domain.model.Habit
 import com.dayflow.domain.model.Task
 import com.dayflow.domain.model.TaskStatus
-import com.dayflow.domain.model.ScheduleBlock
 import com.dayflow.domain.repository.HabitRepository
 import com.dayflow.domain.repository.TaskRepository
 import com.dayflow.domain.repository.ScheduleRepository
