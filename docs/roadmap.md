@@ -15,9 +15,10 @@
 
 - [x] Create dedicated GitHub repository.
 - [x] Document product and architecture baseline.
-- [ ] Add Android Gradle scaffold.
-- [ ] Pin JDK, AGP, Kotlin, KSP, SDK, and AndroidX dependencies.
-- [ ] Configure dependency injection.
+- [x] Add initial Android Gradle/Compose scaffold.
+- [x] Pin initial Android build toolchain and version catalog.
+- [ ] Generate and commit Gradle wrapper scripts/JAR.
+- [ ] Run clean Gradle sync and debug build.
 - [ ] Add CI build/test workflow.
 - [ ] Select a project license.
 
@@ -25,7 +26,8 @@ Exit: clean checkout imports into Android Studio and passes a Gradle debug build
 
 ## Milestone 1 — Local data foundation
 
-- [ ] Implement Room entities and DAOs.
+- [x] Draft Room entities and DAOs.
+- [ ] Compile and verify Room schema generation.
 - [ ] Implement repositories and mappers.
 - [ ] Add dependency-injection bindings.
 - [ ] Export schemas and add migration tests.
@@ -33,20 +35,21 @@ Exit: clean checkout imports into Android Studio and passes a Gradle debug build
 - [ ] Add habit CRUD/completion use cases.
 - [ ] Implement weekly frequency and streak calculations.
 - [ ] Add schedule and availability persistence.
-- [ ] Add reminder persistence.
+- [ ] Add reminder persistence tests.
 
 Exit: automated tests prove offline CRUD and persistence across process restarts.
 
 ## Milestone 2 — Core Compose experience
 
-- [ ] Light and OLED dark Material 3 themes.
-- [ ] Main navigation.
-- [ ] Today dashboard and unified timeline.
-- [ ] Quick task create/edit.
-- [ ] Habit list and one-tap check-in.
-- [ ] Habit details and heatmap.
-- [ ] Schedule editor.
-- [ ] Settings and accessibility.
+- [x] Add initial light and OLED dark palettes.
+- [x] Add initial Today placeholder screen.
+- [ ] Add main navigation.
+- [ ] Add Today dashboard and unified timeline.
+- [ ] Add quick task create/edit.
+- [ ] Add habit list and one-tap check-in.
+- [ ] Add habit details and heatmap.
+- [ ] Add schedule editor.
+- [ ] Add settings and accessibility.
 
 Exit: users can manage tasks and habits offline through the app UI.
 

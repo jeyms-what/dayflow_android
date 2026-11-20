@@ -4,7 +4,7 @@
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
-> **Project status:** Architecture and schema documentation are committed. The initial Room entity/DAO source layer is being added. The Android Gradle application scaffold, repositories, UI, scheduler, alarms, widgets, and automated verification are still in progress. This repository is not yet a ready-to-install APK.
+> **Project status:** The initial Android Gradle/Compose scaffold and Room schema/DAO source are committed. The first clean build and device test have not yet been run. Repositories, use cases, timeline features, scheduler, alarms, widgets, and AI runtime are still in progress. This is not yet a ready-to-install release APK.
 
 ## Product goals
 
@@ -24,59 +24,59 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 4. **Reminders are local.** Persist reminder intent in Room and reconcile Android alarm registrations from those records.
 5. **No API secrets in the app.** Any future cloud AI or sync feature must be optional, opt-in, and accessed through a secure backend.
 
-## Planned technology
+## Technology baseline
 
-| Area | Technology |
+| Area | Selected baseline |
 |---|---|
-| Language | Kotlin |
+| Language | Kotlin 2.4.21 |
+| Android Gradle Plugin | 9.5.0 |
+| Gradle | 9.6.0 |
+| JDK | 17 |
+| Kotlin Symbol Processing | KSP 2.3.12 |
 | UI | Jetpack Compose + Material 3 |
+| Compose BOM | 2026.09.00 |
+| Local database | Room 2.8.5 |
 | Architecture | MVVM, Clean Architecture boundaries, unidirectional data flow |
-| Local database | Room |
-| Preferences | DataStore |
-| Dependency injection | Hilt |
-| Background work | WorkManager |
-| Time-sensitive reminders | AlarmManager + BroadcastReceiver + NotificationManager |
-| Home-screen widgets | Jetpack Glance |
 | Local model runtime | LiteRT-LM (subject to model/device testing) |
-| Scheduling fallback | Deterministic Kotlin constraint-based engine |
-| Tests | JUnit, coroutine tests, Room tests, Compose UI tests |
+| Scheduling fallback | Deterministic Kotlin engine |
 
-The Room schema source uses Room 2.8.5. The Gradle toolchain and other dependency versions will be pinned after compatibility verification in the Android project version catalog.
+Other libraries such as WorkManager, Glance, DataStore, and Hilt will be added when their features are implemented, with versions verified at that time.
 
 ## Repository layout
 
 ```text
-app/src/main/java/com/dayflow/core/database/
-  dao/
-  entity/
-  DayflowDatabase.kt
-  DatabaseProvider.kt
+app/
+  src/main/
+    java/com/dayflow/
+      core/database/
+        dao/
+        entity/
+      core/designsystem/theme/
+      feature/today/presentation/
+    AndroidManifest.xml
+  schemas/
 docs/
   architecture.md
   data-model.md
   build-setup.md
   roadmap.md
+gradle/
+  libs.versions.toml
 ```
 
 See:
 - [Architecture decisions](docs/architecture.md)
 - [Data model and Room schema](docs/data-model.md)
-- [Build setup plan](docs/build-setup.md)
+- [Build setup](docs/build-setup.md)
 - [Development roadmap](docs/roadmap.md)
 
 ## Primary test device
 
 The initial target test device is the **Infinix NOTE 50 Pro+ 5G running Android 16**. Actual hardware variant, available memory, firmware, model compatibility, thermal behavior, and inference performance must be verified on-device. Do not assume Gemini Nano support.
 
-## Initial delivery sequence
+## Build status
 
-1. Build a clean Android Gradle scaffold.
-2. Complete and test Room repositories, transactions, and migrations.
-3. Build the Compose task/habit/timeline experience.
-4. Implement the deterministic local scheduling engine.
-5. Add local alarm-style reminders and recovery/reconciliation.
-6. Evaluate and integrate a compatible on-device AI model.
-7. Add Glance widgets and performance/accessibility tests.
+The Gradle app scaffold is present, but the Gradle wrapper scripts/JAR still need to be generated and the first clean build must be run. No successful compile or device test is claimed yet. Follow [docs/build-setup.md](docs/build-setup.md).
 
 ## Privacy and permissions
 
@@ -86,10 +86,6 @@ The initial target test device is the **Infinix NOTE 50 Pro+ 5G running Android 
 - Notifications require runtime permission on Android 13+.
 - Exact alarms require the applicable Android special access where used. Explain why it is needed and provide a fallback.
 - Respect notification channel sound/vibration settings and device-level restrictions.
-
-## Build and test status
-
-The Gradle project scaffold has not yet been committed, so these sources cannot yet be built from a clean checkout. No compile or device test is claimed. The next implementation step is to add the verified Gradle toolchain, then compile and test the Room layer.
 
 ## License
 
