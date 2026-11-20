@@ -9,13 +9,17 @@ import com.dayflow.domain.model.FrequencyPeriod
 import com.dayflow.domain.model.Habit
 import com.dayflow.domain.model.Task
 import com.dayflow.domain.model.TaskStatus
+import com.dayflow.domain.model.ScheduleBlock
 import com.dayflow.domain.repository.HabitRepository
 import com.dayflow.domain.repository.TaskRepository
+import com.dayflow.domain.repository.ScheduleRepository
 import com.dayflow.domain.usecase.CompleteHabit
 import com.dayflow.domain.usecase.CompleteTask
 import com.dayflow.domain.usecase.SaveHabit
 import com.dayflow.domain.usecase.SaveTask
+import com.dayflow.domain.usecase.ScheduleTask
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import java.util.UUID
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +32,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class TodayViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
-    private val habitRepository: HabitRepository
+    private val habitRepository: HabitRepository,
+    private val scheduleRepository: ScheduleRepository
 ) : ViewModel() {
 
     val tasks: StateFlow<List<Task>> = taskRepository
@@ -54,6 +59,29 @@ class TodayViewModel @Inject constructor(
     private val completeTaskUseCase = CompleteTask(taskRepository)
     private val saveHabit = SaveHabit(habitRepository)
     private val completeHabitUseCase = CompleteHabit(habitRepository)
+    private val scheduleTaskUseCase = ScheduleTask(scheduleRepository)
+
+    fun observeTimeline(date: LocalDate) = scheduleRepository.observeTimeline(
+        startAt = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        endAt = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    )
+
+    fun scheduleTask(taskId: String, date: LocalDate, startTime: LocalTime) {
+        viewModelScope.launch {
+            runCatching {
+                val task = taskRepository.getTask(taskId)
+                    ?: throw IllegalArgumentException("Task no longer exists.")
+                scheduleTaskUseCase(
+                    task = task,
+                    date = date,
+                    startTime = startTime,
+                    timeZoneId = ZoneId.systemDefault().id
+                )
+            }.onFailure {
+                _message.value = it.message ?: "Could not schedule the task."
+            }
+        }
+    }
 
     fun observeProgress(habit: Habit) = habitRepository.observeProgress(
         habitId = habit.id,
