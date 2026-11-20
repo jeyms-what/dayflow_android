@@ -5,8 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.dayflow.domain.model.ReminderStatus
+import com.dayflow.domain.model.ScheduleBlockType
+import com.dayflow.domain.model.TaskStatus
 import com.dayflow.domain.repository.ReminderRepository
 import com.dayflow.domain.repository.ScheduleRepository
+import com.dayflow.domain.repository.TaskRepository
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +22,7 @@ class TaskAlarmReceiver : BroadcastReceiver() {
 
     @Inject lateinit var reminderRepository: ReminderRepository
     @Inject lateinit var scheduleRepository: ScheduleRepository
+    @Inject lateinit var taskRepository: TaskRepository
     @Inject lateinit var alarmScheduler: TaskAlarmScheduler
 
     override fun onReceive(context: Context, intent: Intent?) {
@@ -51,7 +55,19 @@ class TaskAlarmReceiver : BroadcastReceiver() {
 
                 if (block.status.name in listOf("COMPLETED", "CANCELLED", "SKIPPED")) {
                     reminderRepository.dismissReminder(reminder.id)
+                    alarmScheduler.cancel(reminder)
                     return@launch
+                }
+
+                // A task can also be completed from the Today list, outside its
+                // schedule block. Do not ring for a task that is already complete.
+                if (block.blockType == ScheduleBlockType.TASK) {
+                    val task = block.taskId?.let { taskRepository.getTask(it) }
+                    if (task == null || task.status != TaskStatus.OPEN) {
+                        reminderRepository.dismissReminder(reminder.id)
+                        alarmScheduler.cancel(reminder)
+                        return@launch
+                    }
                 }
 
                 if (!reminderRepository.markFiring(reminder.id, now)) return@launch
