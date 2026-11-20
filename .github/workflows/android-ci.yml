@@ -12,6 +12,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -28,13 +31,12 @@ jobs:
         with:
           gradle-version: "9.6.0"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
+      # GitHub-hosted Ubuntu runners already include Android command-line tools.
+      # Avoid the legacy setup action, which attempts to install the retired "tools" package.
       - name: Install Android SDK platform
         run: |
           yes | sdkmanager --licenses
-          sdkmanager "platforms;android-37" "build-tools;36.0.0"
+          sdkmanager --install "platforms;android-37" "build-tools;36.0.0"
 
       - name: Build debug APK and run local unit tests
         run: gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest
