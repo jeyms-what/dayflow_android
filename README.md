@@ -4,7 +4,7 @@
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
-> **Current status:** The Android Gradle/Compose scaffold, Room data layer, Hilt bindings, task/habit use cases, and first interactive Compose task/habit experience are committed. The screen reads and writes local Room data. The Plan tab now includes a Room-backed daily task timeline with manual time-block creation and transactional overlap rejection. Habit time-blocking, analytics, automatic/dynamic scheduling, alarm playback, Glance widgets, and on-device AI runtime remain in progress. The debug build and unit tests passed in GitHub Actions for PR #1; physical-device testing is still pending. Gradle wrapper scripts/JAR are not yet included. This is not a release-ready APK.
+> **Current status:** The Android Gradle/Compose scaffold, Room data layer, Hilt bindings, task/habit use cases, and first interactive Compose task/habit experience are committed. The screen reads and writes local Room data. The Plan tab now includes a Room-backed daily task-and-habit timeline, manual time-block creation, transactional overlap rejection, and completion actions that update the linked task or habit progress locally. Analytics, automatic/dynamic scheduling, alarm playback, Glance widgets, and on-device AI runtime remain in progress. The debug build and unit tests passed in GitHub Actions for PR #1; physical-device testing is still pending. Gradle wrapper scripts/JAR are not yet included. This is not a release-ready APK.
 
 ## Product goals
 
@@ -21,7 +21,8 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 - Create tasks with a title and estimated duration.
 - Complete tasks from the Today screen.
 - Create daily or weekly habits.
-- Add open tasks to today's timeline with a manual start time and duration derived from the task.
+- Add open tasks and active habits to today's timeline using their estimated durations.
+- Complete scheduled activities from the timeline; task, habit progress, block status, and linked reminder state are updated in a local transaction.
 - Log a habit completion directly from the habit card.
 - Calculate daily/weekly progress and current streaks from Room history.
 - Switch between light and OLED-black dark themes for the current app session.
