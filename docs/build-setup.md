@@ -11,7 +11,9 @@ This repository uses the following initial toolchain:
 | JDK | 17 | AGP 9.5 documented JDK requirement |
 | Kotlin | 2.4.21 | Stable Kotlin release |
 | KSP | 2.3.12 | KSP release aligned with Kotlin 2.4.21 |
-| Activity Compose | 1.12.4 | Compatible with the API 36 baseline |\n| Lifecycle | 2.10.0 | ViewModel and `viewModelScope` support without the API 37 requirement in 2.11.x |\n| Compose BOM | 2026.06.01 | Compose 1.11.4 generation |
+| Activity Compose | 1.12.4 | Compatible with the API 36 baseline |
+| Lifecycle | 2.10.0 | ViewModel and `viewModelScope` support with the API 36 baseline |
+| Compose BOM | 2026.06.01 | Compose 1.11.4 generation |
 | Room | 2.8.5 | Stable Room 2.x release |
 | Dagger Hilt | 2.60.1 | KSP supported/stable from Dagger 2.60+ and KSP 2.3.9+ |
 | compileSdk | 36 | Stable Android 16 platform used by CI |
@@ -81,4 +83,6 @@ The primary development PC has 8 GB RAM. Gradle's JVM heap is initially limited 
 
 ## Build verification status
 
-The Gradle files have been added to GitHub, but the CI build has not completed successfully yet. Do not treat the scaffold as verified until the CI build and tests pass.
+GitHub Actions run #30 for PR #1 successfully completed `:app:assembleDebug` and `:app:testDebugUnitTest` using JDK 17, Gradle 9.6.0, and Android SDK 36. This verifies the hosted source snapshot, not installation or runtime behavior on a physical phone. The workflow now uploads a `dayflow-debug-apk` artifact for 14 days after successful builds. Open the repository's Actions tab, select the successful Android CI run, and download the artifact from the Artifacts section.
+
+The Gradle wrapper scripts and wrapper JAR are still not committed. Generate them using the command above before relying on `gradlew.bat` locally. Physical-device installation, airplane-mode tests, notification/alarm behavior, and widget behavior remain unverified.
