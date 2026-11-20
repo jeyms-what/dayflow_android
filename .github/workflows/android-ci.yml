@@ -31,12 +31,17 @@ jobs:
         with:
           gradle-version: "9.6.0"
 
-      # GitHub-hosted Ubuntu runners already include Android command-line tools.
-      # Avoid the legacy setup action, which attempts to install the retired "tools" package.
       - name: Install Android SDK platform
+        shell: bash
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager --install "platforms;android-37" "build-tools;36.0.0"
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "Android sdkmanager was not found under $ANDROID_HOME/cmdline-tools"
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-37" "build-tools;36.0.0"
 
       - name: Build debug APK and run local unit tests
         run: gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest
