@@ -765,10 +765,11 @@ private fun PlanContent(
         }
 
         item {
-            SectionHeader(
-                title = "Unscheduled tasks",
-                action = "",
-                onAction = {}
+            Text(
+                text = "Unscheduled tasks",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
 
