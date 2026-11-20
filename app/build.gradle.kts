@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.dayflow"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.dayflow"
