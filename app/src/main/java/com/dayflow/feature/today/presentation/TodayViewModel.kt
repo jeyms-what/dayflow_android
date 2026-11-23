@@ -27,6 +27,7 @@ import com.dayflow.domain.usecase.SaveTask
 import com.dayflow.domain.usecase.ScheduleTask
 import com.dayflow.domain.usecase.ScheduleHabit
 import com.dayflow.domain.usecase.CompleteScheduleBlock
+import com.dayflow.domain.usecase.WorkoutInputValidator
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -306,20 +307,8 @@ class TodayViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             runCatching {
-                require(title.isNotBlank()) { "Workout name is required." }
-                require(exercises.isNotEmpty()) { "Add at least one exercise." }
-                require(exercises.size <= 20) { "A workout can contain up to 20 exercises." }
-                require(exercises.all { exercise ->
-                    exercise.exerciseName.isNotBlank() &&
-                        exercise.muscleGroup.isNotBlank() &&
-                        exercise.sets.isNotEmpty() &&
-                        exercise.sets.size <= 20 &&
-                        exercise.sets.all { set ->
-                            set.reps in 1..100 &&
-                                set.weightKg.isFinite() &&
-                                set.weightKg in 0.0..1000.0
-                        }
-                }) { "Check each exercise and set. Reps must be 1–100 and weight 0–1000 kg." }
+                val validationError = WorkoutInputValidator.validate(title, exercises)
+                require(validationError == null) { validationError.orEmpty() }
 
                 val now = System.currentTimeMillis()
                 val sessionId = UUID.randomUUID().toString()
