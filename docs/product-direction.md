@@ -48,5 +48,5 @@ The primary destinations are:
 - Room remains the source of truth; all core notes, logs, tasks, and habits work offline.
 - Do not imply a live workout timer, automatic exercise library, PR detection, or analytics until implemented.
 - Weight is stored in kilograms in this milestone.
-- The current workout logger records one exercise per session. Multi-exercise sessions and independent set values are planned follow-up work.
+- Workout logging supports multiple exercises and independent reps/weight values per set. The current rest timer is an in-app countdown and does not yet continue in the background or send a notification.
 - All data migrations must preserve existing installations.
