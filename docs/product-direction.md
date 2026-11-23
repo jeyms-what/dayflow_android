@@ -27,7 +27,7 @@ The primary destinations are:
 
 ## Current implementation slice
 
-- Notes are stored locally in Room, support create/edit, search, pinning, and deletion.
+- Notes are stored locally in Room, support create/edit, search, category filters (General, Ideas, Journal, Study, Training), pinning, and deletion.
 - Training logs are stored locally in Room and support session title, exercise, muscle group, set count, reps, load in kg, and notes.
 - Existing task, habit, schedule, and task-alarm flows remain in place.
 - Database migration 1→2 adds the notes and workout tables without deleting existing user data.
