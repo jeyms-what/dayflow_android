@@ -12,7 +12,7 @@ interface WorkoutDao {
     @Query("SELECT * FROM workout_sessions ORDER BY startedAtEpochMillis DESC")
     fun observeSessions(): Flow<List<WorkoutSessionEntity>>
 
-    @Query("SELECT * FROM workout_sets WHERE sessionId = :sessionId ORDER BY setNumber ASC")
+    @Query("SELECT * FROM workout_sets WHERE sessionId = :sessionId ORDER BY completedAtEpochMillis ASC")
     fun observeSets(sessionId: String): Flow<List<WorkoutSetEntity>>
 
     @Query("SELECT * FROM workout_sets WHERE sessionId = :sessionId ORDER BY completedAtEpochMillis ASC")
