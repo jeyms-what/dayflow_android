@@ -57,6 +57,21 @@ Exit: automated tests prove offline CRUD and persistence across process restarts
 
 Exit: users can manage tasks and habits offline through the app UI.
 
+## Milestone 2A — Notes and training workspace
+
+- [x] Add Room-backed local notes with create/edit, search, pin, and delete.
+- [x] Add Room-backed workout session and set records.
+- [x] Add Notes and Train destinations to primary navigation.
+- [x] Add a first workout logger for one exercise with sets, reps, load, muscle group, and session notes.
+- [ ] Add migration tests for Room 1→2.
+- [ ] Add multiple exercises and per-set values in a single workout.
+- [ ] Add workout templates, rest timer, and active workout state.
+- [ ] Schedule workouts directly in the Plan timeline.
+- [ ] Add training volume, personal records, and weekly consistency summaries.
+- [ ] Link notes to tasks, habits, schedule blocks, and workout sessions.
+
+Exit: notes and basic training logs can be created, searched/viewed, and persisted offline without breaking existing task/habit/schedule data.
+
 ## Milestone 3 — Scheduling engine
 
 - [ ] Define hard constraints and soft preferences.
