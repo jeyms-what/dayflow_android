@@ -64,7 +64,7 @@ Exit: users can manage tasks and habits offline through the app UI.
 - [x] Add Notes and Train destinations to primary navigation.
 - [x] Add a first workout logger for one exercise with sets, reps, load, muscle group, and session notes.
 - [ ] Add migration tests for Room 1→2.
-- [x] Add multiple exercises and per-set values in a single workout.
+- [x] Add multiple exercises, duration, and per-set values in a single workout.
 - [x] Add an in-app rest countdown with common timer presets.
 - [ ] Add workout templates and persistent active workout state.
 - [ ] Add background rest timer notifications.
