@@ -24,7 +24,8 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 - Complete tasks from the Today screen.
 - Create daily or weekly habits.
 - Create, edit, search, pin, and delete local notes.
-- Log a basic gym session with one exercise, muscle group, set count, reps, weight in kg, and notes; review recent sessions.
+- Log a gym session with multiple exercises, muscle groups, individually recorded reps/weights per set, and session notes; review exercise breakdowns and total volume.
+- Use an in-app rest countdown with 30, 60, 90, and 120-second presets while the Train screen remains open.
 - Add open tasks and active habits to today's timeline using their estimated durations.
 - Complete scheduled activities from the timeline; task, habit progress, block status, and linked reminder state are updated in a local transaction.
 - Log a habit completion directly from the habit card.
