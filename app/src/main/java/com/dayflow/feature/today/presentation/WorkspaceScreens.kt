@@ -1,6 +1,7 @@
 package com.dayflow.feature.today.presentation
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,8 +28,13 @@ fun NotesScreen(viewModel: TodayViewModel, contentPadding: PaddingValues) {
     val notes by viewModel.notes.collectAsState()
     var query by rememberSaveable { mutableStateOf("") }
     var selected by remember { mutableStateOf<Note?>(null) }
+    var selectedCategory by rememberSaveable { mutableStateOf("ALL") }
     var editorOpen by rememberSaveable { mutableStateOf(false) }
-    val filtered = notes.filter { query.isBlank() || it.title.contains(query, true) || it.content.contains(query, true) }
+    val categories = listOf("ALL", "GENERAL", "IDEAS", "JOURNAL", "STUDY", "TRAINING")
+    val filtered = notes.filter {
+        (selectedCategory == "ALL" || it.category == selectedCategory) &&
+            (query.isBlank() || it.title.contains(query, true) || it.content.contains(query, true))
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = contentPadding.calculateBottomPadding() + 92.dp),
@@ -39,6 +45,18 @@ fun NotesScreen(viewModel: TodayViewModel, contentPadding: PaddingValues) {
                 Text("Your second brain", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text("Capture ideas, plans, reflections, and training notes.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Search notes") }, singleLine = true)
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    categories.forEach { category ->
+                        FilterChip(
+                            selected = selectedCategory == category,
+                            onClick = { selectedCategory = category },
+                            label = { Text(category.lowercase().replaceFirstChar { it.uppercase() }) }
+                        )
+                    }
+                }
                 Button(onClick = { selected = null; editorOpen = true }, modifier = Modifier.fillMaxWidth()) { Text("Create a note") }
             }
         }
@@ -50,6 +68,11 @@ fun NotesScreen(viewModel: TodayViewModel, contentPadding: PaddingValues) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(note.title.ifBlank { "Untitled note" }, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            note.category.lowercase().replaceFirstChar { it.uppercase() },
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelSmall
+                        )
                         if (note.isPinned) Text("PINNED", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall)
                     }
                     Text(note.content.ifBlank { "No additional text" }, maxLines = 4, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -61,28 +84,65 @@ fun NotesScreen(viewModel: TodayViewModel, contentPadding: PaddingValues) {
     if (editorOpen) NoteEditorDialog(
         note = selected,
         onDismiss = { editorOpen = false },
-        onSave = { title, body, pinned -> viewModel.saveNote(selected?.id, title, body, pinned); editorOpen = false },
+        onSave = { title, body, pinned, category -> viewModel.saveNote(selected?.id, title, body, pinned, category); editorOpen = false },
         onDelete = { selected?.let { viewModel.deleteNote(it.id) }; editorOpen = false }
     )
 }
 
 @Composable
-private fun NoteEditorDialog(note: Note?, onDismiss: () -> Unit, onSave: (String, String, Boolean) -> Unit, onDelete: () -> Unit) {
+private fun NoteEditorDialog(
+    note: Note?,
+    onDismiss: () -> Unit,
+    onSave: (String, String, Boolean, String) -> Unit,
+    onDelete: () -> Unit
+) {
     var title by rememberSaveable(note?.id) { mutableStateOf(note?.title.orEmpty()) }
     var body by rememberSaveable(note?.id) { mutableStateOf(note?.content.orEmpty()) }
     var pinned by rememberSaveable(note?.id) { mutableStateOf(note?.isPinned ?: false) }
+    var category by rememberSaveable(note?.id) { mutableStateOf(note?.category ?: "GENERAL") }
+    var categoryExpanded by rememberSaveable(note?.id) { mutableStateOf(false) }
+    val categories = listOf("GENERAL", "IDEAS", "JOURNAL", "STUDY", "TRAINING")
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (note == null) "New note" else "Edit note") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 OutlinedTextField(title, { title = it }, label = { Text("Title") }, singleLine = true)
-                OutlinedTextField(body, { body = it }, label = { Text("Write something…") }, minLines = 5)
-                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(pinned, { pinned = it }); Text("Pin this note") }
+                Box {
+                    OutlinedButton(onClick = { categoryExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Category · ${category.lowercase().replaceFirstChar { it.uppercase() }}")
+                    }
+                    DropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }) {
+                        categories.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.lowercase().replaceFirstChar { it.uppercase() }) },
+                                onClick = { category = option; categoryExpanded = false }
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(body, { body = it }, label = { Text("Write something…") }, minLines = 6)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(pinned, { pinned = it })
+                    Text("Pin this note")
+                }
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(title, body, pinned) }, enabled = title.isNotBlank() || body.isNotBlank()) { Text("Save") } },
-        dismissButton = { Row { if (note != null) TextButton(onClick = onDelete) { Text("Delete") }; TextButton(onClick = onDismiss) { Text("Cancel") } } }
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(title, body, pinned, category) },
+                enabled = title.isNotBlank() || body.isNotBlank()
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            Row {
+                if (note != null) TextButton(onClick = onDelete) { Text("Delete") }
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+            }
+        }
     )
 }
 
