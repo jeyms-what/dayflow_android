@@ -142,8 +142,8 @@ fun TrainingScreen(viewModel: TodayViewModel, contentPadding: PaddingValues) {
     }
     if (dialogOpen) WorkoutDialog(
         onDismiss = { dialogOpen = false },
-        onSave = { title, exercises, notes ->
-            viewModel.saveWorkout(title, exercises, notes)
+        onSave = { title, durationMinutes, exercises, notes ->
+            viewModel.saveWorkout(title, durationMinutes, exercises, notes)
             dialogOpen = false
         }
     )
@@ -248,6 +248,11 @@ private fun WorkoutCard(session: WorkoutSession, viewModel: TodayViewModel) {
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelMedium
             )
+            Text(
+                "${session.durationSeconds / 60} min session",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             if (exercises.isNotEmpty()) {
                 exercises.forEach { (exercise, exerciseSets) ->
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -276,9 +281,10 @@ private fun WorkoutCard(session: WorkoutSession, viewModel: TodayViewModel) {
 @Composable
 private fun WorkoutDialog(
     onDismiss: () -> Unit,
-    onSave: (String, List<WorkoutExerciseInput>, String) -> Unit
+    onSave: (String, Int, List<WorkoutExerciseInput>, String) -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf("Strength session") }
+    var durationText by rememberSaveable { mutableStateOf("60") }
     var notes by rememberSaveable { mutableStateOf("") }
     var nextExerciseId by remember { mutableStateOf(1) }
     var nextSetId by remember { mutableStateOf(1) }
@@ -292,7 +298,9 @@ private fun WorkoutDialog(
         }
     }
 
-    val valid = title.isNotBlank() && exercises.isNotEmpty() &&
+    val valid = title.isNotBlank() &&
+        (durationText.toIntOrNull() ?: 0) in 1..600 &&
+        exercises.isNotEmpty() &&
         exercises.all { exercise ->
             exercise.exerciseName.isNotBlank() && exercise.muscleGroup.isNotBlank() &&
                 exercise.sets.isNotEmpty() &&
@@ -314,6 +322,13 @@ private fun WorkoutDialog(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Session name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = durationText,
+                    onValueChange = { durationText = it.filter(Char::isDigit).take(3) },
+                    label = { Text("Duration (minutes)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -428,7 +443,7 @@ private fun WorkoutDialog(
                             }
                         )
                     }
-                    onSave(title, input, notes)
+                    onSave(title, durationText.toInt(), input, notes)
                 },
                 enabled = valid
             ) { Text("Save workout") }
