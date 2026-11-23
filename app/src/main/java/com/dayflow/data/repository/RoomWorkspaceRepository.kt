@@ -52,7 +52,16 @@ class RoomWorkspaceRepository @Inject constructor(
 
     override suspend fun saveWorkoutSession(session: WorkoutSession, sets: List<WorkoutSet>) {
         require(session.title.isNotBlank()) { "Workout name cannot be blank." }
-        require(sets.all { it.sessionId == session.id && it.reps > 0 && it.weightKg >= 0.0 }) {
+        require(sets.isNotEmpty()) { "A workout needs at least one set." }
+        require(sets.all {
+            it.sessionId == session.id &&
+                it.exerciseName.isNotBlank() &&
+                it.muscleGroup.isNotBlank() &&
+                it.setNumber > 0 &&
+                it.reps in 1..100 &&
+                it.weightKg.isFinite() &&
+                it.weightKg in 0.0..1000.0
+        }) {
             "Workout sets contain invalid values."
         }
         database.withTransaction {
