@@ -401,6 +401,8 @@ private fun DayflowHeader(
         "Today" -> "Make space for what matters."
         "Habits" -> "Small steps add up."
         "Plan" -> "Give your day a rhythm."
+        "Notes" -> "Keep your thoughts close."
+        "Train" -> "Build strength, one session at a time."
         else -> "Notice how far you've come."
     }
     val dateLabel = LocalDate.now().format(
