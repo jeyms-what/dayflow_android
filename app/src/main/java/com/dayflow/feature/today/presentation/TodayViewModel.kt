@@ -9,6 +9,10 @@ import com.dayflow.domain.model.FrequencyPeriod
 import com.dayflow.domain.model.Habit
 import com.dayflow.domain.model.Task
 import com.dayflow.domain.model.TaskStatus
+import com.dayflow.domain.model.Note
+import com.dayflow.domain.model.WorkoutSession
+import com.dayflow.domain.model.WorkoutSet
+import com.dayflow.domain.repository.WorkspaceRepository
 import com.dayflow.domain.repository.HabitRepository
 import com.dayflow.domain.repository.TaskRepository
 import com.dayflow.domain.repository.ScheduleRepository
@@ -39,7 +43,8 @@ class TodayViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
     private val scheduleRepository: ScheduleRepository,
     private val reminderRepository: ReminderRepository,
-    private val taskAlarmScheduler: TaskAlarmScheduler
+    private val taskAlarmScheduler: TaskAlarmScheduler,
+    private val workspaceRepository: WorkspaceRepository
 ) : ViewModel() {
 
     val tasks: StateFlow<List<Task>> = taskRepository
@@ -60,6 +65,20 @@ class TodayViewModel @Inject constructor(
 
     val unscheduledTasks: StateFlow<List<Task>> = taskRepository
         .observeUnscheduledTasks()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
+    val notes: StateFlow<List<Note>> = workspaceRepository.observeNotes().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
+
+    val workoutSessions: StateFlow<List<WorkoutSession>> = workspaceRepository
+        .observeWorkoutSessions()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -240,6 +259,91 @@ class TodayViewModel @Inject constructor(
                 )
             }.onFailure {
                 _message.value = it.message ?: "Could not log the habit."
+            }
+        }
+    }
+
+    fun saveNote(
+        id: String?,
+        title: String,
+        content: String,
+        isPinned: Boolean
+    ) {
+        viewModelScope.launch {
+            runCatching {
+                val now = System.currentTimeMillis()
+                val existing = id?.let { key -> notes.value.firstOrNull { it.id == key } }
+                workspaceRepository.saveNote(
+                    Note(
+                        id = id ?: UUID.randomUUID().toString(),
+                        title = title.trim(),
+                        content = content,
+                        category = "GENERAL",
+                        isPinned = isPinned,
+                        createdAtEpochMillis = existing?.createdAtEpochMillis ?: now,
+                        updatedAtEpochMillis = now
+                    )
+                )
+                _message.value = "Note saved."
+            }.onFailure {
+                _message.value = it.message ?: "Could not save the note."
+            }
+        }
+    }
+
+    fun deleteNote(id: String) {
+        viewModelScope.launch {
+            runCatching { workspaceRepository.deleteNote(id) }
+                .onFailure { _message.value = it.message ?: "Could not delete the note." }
+        }
+    }
+
+    fun saveWorkout(
+        title: String,
+        exerciseName: String,
+        muscleGroup: String,
+        setCount: Int,
+        reps: Int,
+        weightKg: Double,
+        notesText: String
+    ) {
+        viewModelScope.launch {
+            runCatching {
+                require(title.isNotBlank()) { "Workout name is required." }
+                require(exerciseName.isNotBlank()) { "Exercise name is required." }
+                require(setCount in 1..20) { "Sets must be between 1 and 20." }
+                require(reps in 1..100) { "Reps must be between 1 and 100." }
+                require(weightKg in 0.0..1000.0) { "Weight must be between 0 and 1000 kg." }
+                val now = System.currentTimeMillis()
+                val sessionId = UUID.randomUUID().toString()
+                val sets = (1..setCount).map { setNumber ->
+                    WorkoutSet(
+                        id = UUID.randomUUID().toString(),
+                        sessionId = sessionId,
+                        exerciseName = exerciseName.trim(),
+                        muscleGroup = muscleGroup,
+                        setNumber = setNumber,
+                        reps = reps,
+                        weightKg = weightKg,
+                        completedAtEpochMillis = now
+                    )
+                }
+                workspaceRepository.saveWorkoutSession(
+                    session = WorkoutSession(
+                        id = sessionId,
+                        title = title.trim(),
+                        startedAtEpochMillis = now,
+                        endedAtEpochMillis = now,
+                        durationSeconds = 0,
+                        notes = notesText.trim(),
+                        status = "COMPLETED",
+                        createdAtEpochMillis = now
+                    ),
+                    sets = sets
+                )
+                _message.value = "Workout saved."
+            }.onFailure {
+                _message.value = it.message ?: "Could not save workout."
             }
         }
     }
