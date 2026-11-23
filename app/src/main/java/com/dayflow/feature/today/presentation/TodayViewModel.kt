@@ -348,6 +348,9 @@ class TodayViewModel @Inject constructor(
         }
     }
 
+    fun observeWorkoutSets(sessionId: String) =
+        workspaceRepository.observeWorkoutSets(sessionId)
+
     fun clearMessage() {
         _message.value = null
     }
