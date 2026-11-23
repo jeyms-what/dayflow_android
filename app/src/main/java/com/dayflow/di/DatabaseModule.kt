@@ -27,7 +27,7 @@ object DatabaseModule {
             context,
             DayflowDatabase::class.java,
             "dayflow_database"
-        ).build()
+        ).addMigrations(com.dayflow.core.database.MIGRATION_1_2).build()
 
     @Provides fun provideTaskDao(database: DayflowDatabase): TaskDao = database.taskDao()
     @Provides fun provideHabitDao(database: DayflowDatabase): HabitDao = database.habitDao()
@@ -35,6 +35,8 @@ object DatabaseModule {
     @Provides fun provideAvailabilityDao(database: DayflowDatabase): AvailabilityDao = database.availabilityDao()
     @Provides fun provideReminderDao(database: DayflowDatabase): ReminderDao = database.reminderDao()
     @Provides fun provideAiProposalDao(database: DayflowDatabase): AiProposalDao = database.aiProposalDao()
+    @Provides fun provideNoteDao(database: DayflowDatabase): NoteDao = database.noteDao()
+    @Provides fun provideWorkoutDao(database: DayflowDatabase): WorkoutDao = database.workoutDao()
 }
 
 @Module
@@ -55,4 +57,7 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindAiProposalRepository(implementation: RoomAiProposalRepository): AiProposalRepository
+
+    @Binds @Singleton
+    abstract fun bindWorkspaceRepository(implementation: RoomWorkspaceRepository): WorkspaceRepository
 }

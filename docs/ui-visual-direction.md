@@ -12,6 +12,17 @@ The current Compose UI uses a calm, dark-first productivity design with a restra
 - **Typography:** clear Material 3 hierarchy, with short overlines, strong screen titles, and readable supporting text.
 - **Theme:** dark mode is the first-launch default. The header retains a light/dark switch.
 
+## Interaction references and expanded destinations
+
+Use the user's Streak habit tracker reference for glanceable weekly consistency, quick check-ins, streak context, and restrained progress feedback. Use GymMane as a reference for training-focused session hierarchy, exercise/set logging, and workout history. Do not reproduce either app's exact layout, assets, or branding.
+
+Primary navigation is now Today / Notes / Plan / Train / Habits:
+- **Today:** next actions and quick habit check-ins.
+- **Notes:** searchable note cards, pinned notes, and a focused editor.
+- **Plan:** unified daily timeline; workout scheduling will be integrated in a later increment.
+- **Train:** workout session logging and recent training history.
+- **Habits:** daily/weekly routines and streaks.
+
 ## Current screen scope
 
 - **Today:** daily overview, open tasks, completion actions, and a short habit list.
@@ -37,3 +48,12 @@ Run on a real Android device after installing the CI debug APK:
 10. Repeat the reminder checks with network connectivity disabled to confirm the local data and alarm path do not depend on internet access.
 
 The GitHub Actions debug APK is the installable test build. A successful CI build verifies compilation and JVM unit tests; it does not replace the physical-device checks above.
+
+
+## New feature smoke checks
+
+11. Create a note with a title and body, save it, leave the screen, return, and confirm it persists.
+12. Search for a word in a note, pin it, edit it, and delete it.
+13. Log a workout with an exercise, muscle group, sets, reps, and kg; confirm it appears in recent sessions after navigating away and back.
+14. Verify the database migration on an installation containing existing tasks, habits, schedule blocks, and reminders. Confirm all previous records remain present after upgrade.
+15. Repeat notes and workout creation in Airplane Mode.

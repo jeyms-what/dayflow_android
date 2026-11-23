@@ -9,6 +9,11 @@ import com.dayflow.domain.model.FrequencyPeriod
 import com.dayflow.domain.model.Habit
 import com.dayflow.domain.model.Task
 import com.dayflow.domain.model.TaskStatus
+import com.dayflow.domain.model.Note
+import com.dayflow.domain.model.WorkoutSession
+import com.dayflow.domain.model.WorkoutSet
+import com.dayflow.domain.model.WorkoutExerciseInput
+import com.dayflow.domain.repository.WorkspaceRepository
 import com.dayflow.domain.repository.HabitRepository
 import com.dayflow.domain.repository.TaskRepository
 import com.dayflow.domain.repository.ScheduleRepository
@@ -22,6 +27,7 @@ import com.dayflow.domain.usecase.SaveTask
 import com.dayflow.domain.usecase.ScheduleTask
 import com.dayflow.domain.usecase.ScheduleHabit
 import com.dayflow.domain.usecase.CompleteScheduleBlock
+import com.dayflow.domain.usecase.WorkoutInputValidator
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -39,7 +45,8 @@ class TodayViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
     private val scheduleRepository: ScheduleRepository,
     private val reminderRepository: ReminderRepository,
-    private val taskAlarmScheduler: TaskAlarmScheduler
+    private val taskAlarmScheduler: TaskAlarmScheduler,
+    private val workspaceRepository: WorkspaceRepository
 ) : ViewModel() {
 
     val tasks: StateFlow<List<Task>> = taskRepository
@@ -60,6 +67,20 @@ class TodayViewModel @Inject constructor(
 
     val unscheduledTasks: StateFlow<List<Task>> = taskRepository
         .observeUnscheduledTasks()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
+    val notes: StateFlow<List<Note>> = workspaceRepository.observeNotes().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
+
+    val workoutSessions: StateFlow<List<WorkoutSession>> = workspaceRepository
+        .observeWorkoutSessions()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -243,6 +264,94 @@ class TodayViewModel @Inject constructor(
             }
         }
     }
+
+    fun saveNote(
+        id: String?,
+        title: String,
+        content: String,
+        isPinned: Boolean,
+        category: String
+    ) {
+        viewModelScope.launch {
+            runCatching {
+                val now = System.currentTimeMillis()
+                val existing = id?.let { key -> notes.value.firstOrNull { it.id == key } }
+                workspaceRepository.saveNote(
+                    Note(
+                        id = id ?: UUID.randomUUID().toString(),
+                        title = title.trim(),
+                        content = content,
+                        category = category,
+                        isPinned = isPinned,
+                        createdAtEpochMillis = existing?.createdAtEpochMillis ?: now,
+                        updatedAtEpochMillis = now
+                    )
+                )
+                _message.value = "Note saved."
+            }.onFailure {
+                _message.value = it.message ?: "Could not save the note."
+            }
+        }
+    }
+
+    fun deleteNote(id: String) {
+        viewModelScope.launch {
+            runCatching { workspaceRepository.deleteNote(id) }
+                .onFailure { _message.value = it.message ?: "Could not delete the note." }
+        }
+    }
+
+    fun saveWorkout(
+        title: String,
+        durationMinutes: Int,
+        exercises: List<WorkoutExerciseInput>,
+        notesText: String
+    ) {
+        viewModelScope.launch {
+            runCatching {
+                val validationError = WorkoutInputValidator.validate(title, durationMinutes, exercises)
+                require(validationError == null) { validationError.orEmpty() }
+
+                val now = System.currentTimeMillis()
+                val sessionId = UUID.randomUUID().toString()
+                var sequence = 0L
+                val sets = exercises.flatMap { exercise ->
+                    exercise.sets.mapIndexed { index, set ->
+                        WorkoutSet(
+                            id = UUID.randomUUID().toString(),
+                            sessionId = sessionId,
+                            exerciseName = exercise.exerciseName.trim(),
+                            muscleGroup = exercise.muscleGroup.trim(),
+                            setNumber = index + 1,
+                            reps = set.reps,
+                            weightKg = set.weightKg,
+                            // Millisecond ordering preserves the user's exercise/set entry order.
+                            completedAtEpochMillis = now + sequence++
+                        )
+                    }
+                }
+                workspaceRepository.saveWorkoutSession(
+                    session = WorkoutSession(
+                        id = sessionId,
+                        title = title.trim(),
+                        startedAtEpochMillis = now - durationMinutes * 60_000L,
+                        endedAtEpochMillis = now,
+                        durationSeconds = durationMinutes * 60L,
+                        notes = notesText.trim(),
+                        status = "COMPLETED",
+                        createdAtEpochMillis = now
+                    ),
+                    sets = sets
+                )
+                _message.value = "Workout saved."
+            }.onFailure {
+                _message.value = it.message ?: "Could not save workout."
+            }
+        }
+    }
+
+    fun observeWorkoutSets(sessionId: String) =
+        workspaceRepository.observeWorkoutSets(sessionId)
 
     fun clearMessage() {
         _message.value = null

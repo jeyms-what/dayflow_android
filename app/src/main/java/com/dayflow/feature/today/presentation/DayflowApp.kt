@@ -31,6 +31,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.LightMode
@@ -97,9 +99,10 @@ private enum class DayflowTab(
     val icon: ImageVector
 ) {
     TODAY("Today", Icons.Outlined.Home),
-    HABITS("Habits", Icons.Outlined.Repeat),
+    NOTES("Notes", Icons.Outlined.Description),
     PLAN("Plan", Icons.Outlined.CalendarMonth),
-    INSIGHTS("Insights", Icons.Outlined.Insights)
+    TRAIN("Train", Icons.Outlined.FitnessCenter),
+    HABITS("Habits", Icons.Outlined.Repeat)
 }
 
 @Composable
@@ -318,9 +321,13 @@ fun DayflowApp(viewModel: TodayViewModel) {
                     }
                 )
 
-                DayflowTab.INSIGHTS -> ComingSoonContent(
-                    title = "Your progress",
-                    description = "Weekly summaries, streak insights, and the completion heatmap will appear here as the tracking experience grows.",
+                DayflowTab.NOTES -> NotesScreen(
+                    viewModel = viewModel,
+                    contentPadding = contentPadding
+                )
+
+                DayflowTab.TRAIN -> TrainingScreen(
+                    viewModel = viewModel,
                     contentPadding = contentPadding
                 )
             }
@@ -394,6 +401,8 @@ private fun DayflowHeader(
         "Today" -> "Make space for what matters."
         "Habits" -> "Small steps add up."
         "Plan" -> "Give your day a rhythm."
+        "Notes" -> "Keep your thoughts close."
+        "Train" -> "Build strength, one session at a time."
         else -> "Notice how far you've come."
     }
     val dateLabel = LocalDate.now().format(

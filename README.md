@@ -1,6 +1,6 @@
 # Dayflow
 
-**An offline-first Android planner combining tasks, habits, time-blocking, local AI assistance, and alarm-style reminders.**
+**An offline-first Android personal workspace combining notes, scheduling, habits, gym training logs, and alarm-style reminders.**
 
 Dayflow is designed around one promise: your schedule and habits stay available on your phone, even when the internet is not.
 
@@ -8,19 +8,24 @@ Dayflow is designed around one promise: your schedule and habits stay available 
 
 ## Product goals
 
-- **Unified daily timeline:** Tasks, habits, breaks, and fixed commitments in one agenda.
+- **Unified daily timeline:** Tasks, habits, workouts, breaks, and fixed commitments in one agenda.
+- **Notes workspace:** Searchable, pinnable notes for ideas, journaling, plans, and training reflections.
+- **Gym training log:** Record sessions, exercises, muscle groups, sets, reps, loads, and session notes.
 - **Flexible habit tracking:** Daily and weekly targets, including goals such as three sessions per week.
 - **On-device AI first:** Prefer compatible local models; never require cloud AI for core scheduling.
 - **Safe smart scheduling:** Generate proposals, validate constraints locally, and apply only after user approval.
 - **Alarm-style reminders:** Local audible/vibrating alerts with Complete, Snooze, and Dismiss actions.
 - **Interactive widgets:** Quick habit completion and upcoming schedule information.
-- **Local-first data:** Room is the source of truth for application data.
+- **Local-first data:** Room is the source of truth for application data, including notes and training logs.
 
 ## Implemented in the current milestone
 
 - Create tasks with a title and estimated duration.
 - Complete tasks from the Today screen.
 - Create daily or weekly habits.
+- Create, edit, search, pin, and delete local notes.
+- Log a gym session with multiple exercises, a recorded duration, muscle groups, individually recorded reps/weights per set, and session notes; review exercise breakdowns and total volume.
+- Use an in-app rest countdown with 30, 60, 90, and 120-second presets while the Train screen remains open.
 - Add open tasks and active habits to today's timeline using their estimated durations.
 - Complete scheduled activities from the timeline; task, habit progress, block status, and linked reminder state are updated in a local transaction.
 - Log a habit completion directly from the habit card.
@@ -80,6 +85,7 @@ gradle/
 ```
 
 See:
+- [Product direction: notes, schedule, and training](docs/product-direction.md)
 - [Architecture decisions](docs/architecture.md)
 - [Data model and Room schema](docs/data-model.md)
 - [Build setup](docs/build-setup.md)
