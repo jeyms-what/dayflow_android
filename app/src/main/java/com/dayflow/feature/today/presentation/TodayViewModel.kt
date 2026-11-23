@@ -12,6 +12,7 @@ import com.dayflow.domain.model.TaskStatus
 import com.dayflow.domain.model.Note
 import com.dayflow.domain.model.WorkoutSession
 import com.dayflow.domain.model.WorkoutSet
+import com.dayflow.domain.model.WorkoutExerciseInput
 import com.dayflow.domain.repository.WorkspaceRepository
 import com.dayflow.domain.repository.HabitRepository
 import com.dayflow.domain.repository.TaskRepository
@@ -300,33 +301,43 @@ class TodayViewModel @Inject constructor(
 
     fun saveWorkout(
         title: String,
-        exerciseName: String,
-        muscleGroup: String,
-        setCount: Int,
-        reps: Int,
-        weightKg: Double,
+        exercises: List<WorkoutExerciseInput>,
         notesText: String
     ) {
         viewModelScope.launch {
             runCatching {
                 require(title.isNotBlank()) { "Workout name is required." }
-                require(exerciseName.isNotBlank()) { "Exercise name is required." }
-                require(setCount in 1..20) { "Sets must be between 1 and 20." }
-                require(reps in 1..100) { "Reps must be between 1 and 100." }
-                require(weightKg in 0.0..1000.0) { "Weight must be between 0 and 1000 kg." }
+                require(exercises.isNotEmpty()) { "Add at least one exercise." }
+                require(exercises.size <= 20) { "A workout can contain up to 20 exercises." }
+                require(exercises.all { exercise ->
+                    exercise.exerciseName.isNotBlank() &&
+                        exercise.muscleGroup.isNotBlank() &&
+                        exercise.sets.isNotEmpty() &&
+                        exercise.sets.size <= 20 &&
+                        exercise.sets.all { set ->
+                            set.reps in 1..100 &&
+                                set.weightKg.isFinite() &&
+                                set.weightKg in 0.0..1000.0
+                        }
+                }) { "Check each exercise and set. Reps must be 1–100 and weight 0–1000 kg." }
+
                 val now = System.currentTimeMillis()
                 val sessionId = UUID.randomUUID().toString()
-                val sets = (1..setCount).map { setNumber ->
-                    WorkoutSet(
-                        id = UUID.randomUUID().toString(),
-                        sessionId = sessionId,
-                        exerciseName = exerciseName.trim(),
-                        muscleGroup = muscleGroup,
-                        setNumber = setNumber,
-                        reps = reps,
-                        weightKg = weightKg,
-                        completedAtEpochMillis = now
-                    )
+                var sequence = 0L
+                val sets = exercises.flatMap { exercise ->
+                    exercise.sets.mapIndexed { index, set ->
+                        WorkoutSet(
+                            id = UUID.randomUUID().toString(),
+                            sessionId = sessionId,
+                            exerciseName = exercise.exerciseName.trim(),
+                            muscleGroup = exercise.muscleGroup.trim(),
+                            setNumber = index + 1,
+                            reps = set.reps,
+                            weightKg = set.weightKg,
+                            // Millisecond ordering preserves the user's exercise/set entry order.
+                            completedAtEpochMillis = now + sequence++
+                        )
+                    }
                 }
                 workspaceRepository.saveWorkoutSession(
                     session = WorkoutSession(
