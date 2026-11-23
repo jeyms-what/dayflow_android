@@ -31,3 +31,15 @@ data class WorkoutSet(
     val weightKg: Double,
     val completedAtEpochMillis: Long
 )
+
+
+data class WorkoutSetInput(
+    val reps: Int,
+    val weightKg: Double
+)
+
+data class WorkoutExerciseInput(
+    val exerciseName: String,
+    val muscleGroup: String,
+    val sets: List<WorkoutSetInput>
+)
