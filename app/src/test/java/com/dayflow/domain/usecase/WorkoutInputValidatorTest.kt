@@ -27,14 +27,14 @@ class WorkoutInputValidatorTest {
             )
         )
 
-        assertNull(WorkoutInputValidator.validate("Push day", exercises))
+        assertNull(WorkoutInputValidator.validate("Push day", 60, exercises))
     }
 
     @Test
     fun rejectsEmptyWorkout() {
         assertEquals(
             "Add at least one exercise.",
-            WorkoutInputValidator.validate("Push day", emptyList())
+            WorkoutInputValidator.validate("Push day", 60, emptyList())
         )
     }
 
@@ -50,7 +50,7 @@ class WorkoutInputValidatorTest {
 
         assertEquals(
             "Reps must be between 1 and 100.",
-            WorkoutInputValidator.validate("Leg day", exercises)
+            WorkoutInputValidator.validate("Leg day", 60, exercises)
         )
     }
 
@@ -66,7 +66,21 @@ class WorkoutInputValidatorTest {
 
         assertEquals(
             "Weight must be between 0 and 1000 kg.",
-            WorkoutInputValidator.validate("Pull day", exercises)
+            WorkoutInputValidator.validate("Pull day", 60, exercises)
         )
     }
 }
+
+    @Test
+    fun rejectsInvalidWorkoutDuration() {
+        assertEquals(
+            "Workout duration must be between 1 and 600 minutes.\\n",
+            WorkoutInputValidator.validate("Leg day", 0, listOf(
+                WorkoutExerciseInput(
+                    exerciseName = "Squat",
+                    muscleGroup = "Legs",
+                    sets = listOf(WorkoutSetInput(reps = 5, weightKg = 60.0))
+                )
+            ))
+        )
+    }
