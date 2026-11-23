@@ -61,7 +61,12 @@ fun NotesScreen(viewModel: TodayViewModel, contentPadding: PaddingValues) {
             }
         }
         if (filtered.isEmpty()) item {
-            EmptyWorkspaceCard(if (query.isBlank()) "Nothing written yet" else "No matching notes", "Your notes are stored privately on this device.")
+            val emptyTitle = when {
+                query.isNotBlank() -> "No matching notes"
+                selectedCategory != "ALL" -> "No notes in this category"
+                else -> "Nothing written yet"
+            }
+            EmptyWorkspaceCard(emptyTitle, "Your notes are stored privately on this device.")
         }
         items(filtered, key = { it.id }) { note ->
             Card(onClick = { selected = note; editorOpen = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
