@@ -302,12 +302,13 @@ class TodayViewModel @Inject constructor(
 
     fun saveWorkout(
         title: String,
+        durationMinutes: Int,
         exercises: List<WorkoutExerciseInput>,
         notesText: String
     ) {
         viewModelScope.launch {
             runCatching {
-                val validationError = WorkoutInputValidator.validate(title, exercises)
+                val validationError = WorkoutInputValidator.validate(title, durationMinutes, exercises)
                 require(validationError == null) { validationError.orEmpty() }
 
                 val now = System.currentTimeMillis()
@@ -332,9 +333,9 @@ class TodayViewModel @Inject constructor(
                     session = WorkoutSession(
                         id = sessionId,
                         title = title.trim(),
-                        startedAtEpochMillis = now,
+                        startedAtEpochMillis = now - durationMinutes * 60_000L,
                         endedAtEpochMillis = now,
-                        durationSeconds = 0,
+                        durationSeconds = durationMinutes * 60L,
                         notes = notesText.trim(),
                         status = "COMPLETED",
                         createdAtEpochMillis = now
