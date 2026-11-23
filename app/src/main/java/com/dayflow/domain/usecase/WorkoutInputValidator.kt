@@ -5,7 +5,7 @@ import com.dayflow.domain.model.WorkoutExerciseInput
 object WorkoutInputValidator {
     fun validate(title: String, durationMinutes: Int, exercises: List<WorkoutExerciseInput>): String? {
         if (title.isBlank()) return "Workout name is required."
-        if (durationMinutes !in 1..600) return "Workout duration must be between 1 and 600 minutes.\n"
+        if (durationMinutes !in 1..600) return "Workout duration must be between 1 and 600 minutes."
         if (exercises.isEmpty()) return "Add at least one exercise."
         if (exercises.size > 20) return "A workout can contain up to 20 exercises."
 
