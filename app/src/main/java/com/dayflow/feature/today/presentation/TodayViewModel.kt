@@ -269,7 +269,8 @@ class TodayViewModel @Inject constructor(
         id: String?,
         title: String,
         content: String,
-        isPinned: Boolean
+        isPinned: Boolean,
+        category: String
     ) {
         viewModelScope.launch {
             runCatching {
@@ -280,7 +281,7 @@ class TodayViewModel @Inject constructor(
                         id = id ?: UUID.randomUUID().toString(),
                         title = title.trim(),
                         content = content,
-                        category = "GENERAL",
+                        category = category,
                         isPinned = isPinned,
                         createdAtEpochMillis = existing?.createdAtEpochMillis ?: now,
                         updatedAtEpochMillis = now
