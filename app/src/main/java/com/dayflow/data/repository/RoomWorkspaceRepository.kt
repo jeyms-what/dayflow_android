@@ -26,6 +26,9 @@ class RoomWorkspaceRepository @Inject constructor(
         require(note.title.isNotBlank() || note.content.isNotBlank()) {
             "A note needs a title or some content."
         }
+        require(note.category in setOf("GENERAL", "IDEAS", "JOURNAL", "STUDY", "TRAINING")) {
+            "Unsupported note category."
+        }
         val now = System.currentTimeMillis()
         noteDao.upsert(
             NoteEntity(
