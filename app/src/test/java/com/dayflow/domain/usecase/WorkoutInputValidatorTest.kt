@@ -69,18 +69,20 @@ class WorkoutInputValidatorTest {
             WorkoutInputValidator.validate("Pull day", 60, exercises)
         )
     }
-}
 
     @Test
     fun rejectsInvalidWorkoutDuration() {
+        val exercises = listOf(
+            WorkoutExerciseInput(
+                exerciseName = "Squat",
+                muscleGroup = "Legs",
+                sets = listOf(WorkoutSetInput(reps = 5, weightKg = 60.0))
+            )
+        )
+
         assertEquals(
-            "Workout duration must be between 1 and 600 minutes.\\n",
-            WorkoutInputValidator.validate("Leg day", 0, listOf(
-                WorkoutExerciseInput(
-                    exerciseName = "Squat",
-                    muscleGroup = "Legs",
-                    sets = listOf(WorkoutSetInput(reps = 5, weightKg = 60.0))
-                )
-            ))
+            "Workout duration must be between 1 and 600 minutes.",
+            WorkoutInputValidator.validate("Leg day", 0, exercises)
         )
     }
+}
