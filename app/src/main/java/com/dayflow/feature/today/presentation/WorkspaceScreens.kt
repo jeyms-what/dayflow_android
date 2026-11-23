@@ -1,6 +1,8 @@
 package com.dayflow.feature.today.presentation
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -106,7 +108,7 @@ fun TrainingScreen(viewModel: TodayViewModel, contentPadding: PaddingValues) {
         if (sessions.isEmpty()) item {
             EmptyWorkspaceCard("Your training starts here", "Log a session with an exercise, muscle group, sets, reps, and weight. Workout history stays on your device.")
         }
-        items(sessions, key = { it.id }) { session -> WorkoutCard(session) }
+        items(sessions, key = { it.id }) { session -> WorkoutCard(session, viewModel) }
     }
     if (dialogOpen) WorkoutDialog(
         onDismiss = { dialogOpen = false },
@@ -128,11 +130,18 @@ private fun TrainingStat(label: String, value: String, modifier: Modifier = Modi
 }
 
 @Composable
-private fun WorkoutCard(session: WorkoutSession) {
+private fun WorkoutCard(session: WorkoutSession, viewModel: TodayViewModel) {
+    val sets by viewModel.observeWorkoutSets(session.id).collectAsState(initial = emptyList())
     Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(session.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text(SimpleDateFormat("EEE, MMM d · h:mm a", Locale.getDefault()).format(Date(session.startedAtEpochMillis)), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+            sets.firstOrNull()?.let { first ->
+                Text("${first.exerciseName} · ${first.muscleGroup}", style = MaterialTheme.typography.bodyMedium)
+            }
+            if (sets.isNotEmpty()) {
+                Text("${sets.size} sets · " + sets.joinToString { "${it.reps} reps @ ${it.weightKg} kg" }, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            }
             if (session.notes.isNotBlank()) Text(session.notes, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(session.status.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -155,7 +164,7 @@ private fun WorkoutDialog(onDismiss: () -> Unit, onSave: (String, String, String
         onDismissRequest = onDismiss,
         title = { Text("Log workout") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Column(modifier = Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 OutlinedTextField(title, { title = it }, label = { Text("Session name") }, singleLine = true)
                 OutlinedTextField(exercise, { exercise = it }, label = { Text("Exercise") }, singleLine = true)
                 OutlinedTextField(group, { group = it }, label = { Text("Muscle group") }, singleLine = true)
